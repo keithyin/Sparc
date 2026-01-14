@@ -216,10 +216,13 @@ int main(int argc, char* argv[])
 	}
 
 
+	cout << "BackboneFile=" << BackboneFile << endl;
 	ifstream backbone_in(BackboneFile.c_str());
 	ifstream mapped_in(Filename.c_str());
 	string str,backbone,tag,n_tag;
 	get_a_fasta_read(backbone_in,tag,backbone,n_tag);
+
+	cout << "BackboneSize=" << backbone.size() << endl;
 
 	align_profile backbone_align_profile;
 	backbone_align_profile.match_vec.resize(backbone.size());
@@ -250,6 +253,7 @@ int main(int argc, char* argv[])
 
 	if (gap == 1)
 	{
+		cout << "Consensus_Kmer_Graph_Construction" << endl;
 		Consensus_Kmer_Graph_Construction(&ref, &backbone_info_org, K_size);
 	}
 	
@@ -272,6 +276,12 @@ int main(int argc, char* argv[])
 	}
 	
 	//cout << "adding query branches." << endl;
+
+	cout << "Patch_K=" << Patch_K << endl;
+	cout << "Patch_D=" << Patch_D << endl;
+	cout << "Patch_G=" << Patch_G << endl;
+	cout << "Patch=" << Patch << endl;
+	cout << "Fill=" << Fill << endl;
 
 	size_t n_reads = 0;
 	backbone_info.ref_matched = 0;

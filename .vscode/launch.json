@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C++ Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/main",  // 可执行文件路径
+            "args": ["b",  "testdata2/backbone-0.fasta",  "m", "testdata2/backbone-0.mapped.m5",  "HQ_Prefix",  "Contig",  "k", "1", "g", "1", "c", "2", "t", "0.2", "o", "testdata2/out"],                                // 程序参数
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,                  // 使用 VSCode 内置终端
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb",                   // Windows 可改为完整路径
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build"                   // 调试前执行编译任务
+        }
+    ]
+}

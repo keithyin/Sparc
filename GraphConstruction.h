@@ -39,6 +39,10 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 
 	int tot_bits = Read_arr_sz * 64;
 
+	cout << "ReadLen=" << readLen << endl;
+	cout << "OverlappingKmers=" << OverlappingKmers << endl;
+	cout << "Read_arr_sz=" << Read_arr_sz << endl;
+
 	uint64_t seq;
 	//check the read to see if there is a saved kmer in the hashtable or bloom filter
 	consensus_node *previous_node = NULL, *current_node = NULL;
@@ -165,10 +169,13 @@ void Consensus_Sparse_Kmer_Graph_Construction(struct ref_read_t *read, struct ba
 
 }
 
-
+// 将 mismatch 拆成了两个 GAP
+// gap 右对齐
 void NormalizeAlignment(query_info *query_info)
 {
-
+	cout << "query_info->tAlignedSeq=" << query_info->tAlignedSeq << endl;
+	cout << "query_info->qAlignedSeq=" << query_info->qAlignedSeq << endl;
+	
 	string qAlignedSeq_new, tAlignedSeq_new;
 	size_t seq_sz = query_info->qAlignedSeq.size();
 	qAlignedSeq_new.resize(2 * seq_sz);
@@ -197,12 +204,16 @@ void NormalizeAlignment(query_info *query_info)
 			if (query_info->qAlignedSeq[i] != '-'&&query_info->tAlignedSeq[i] != '-')
 			{
 				//tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
+				// mismatch 的处理逻辑。target 先占住位置
 				tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
 				n_char++;
 
 				bool replace = 0;
 				for (int j = i + 1; j < query_info->tAlignedSeq.size(); ++j)
 				{
+					// 找到 第一个不是 - 的 base
+					// ATC   ATC
+					// ACC   
 					if (query_info->tAlignedSeq[j] != '-')
 					{
 						if (query_info->tAlignedSeq[j] == query_info->qAlignedSeq[i])
@@ -279,6 +290,11 @@ void NormalizeAlignment(query_info *query_info)
 	}
 	qAlignedSeq_new.resize(n_char);
 	tAlignedSeq_new.resize(n_char);
+
+	cout << "tAlignedSeq_new        =" << tAlignedSeq_new << endl;
+	cout << "qAlignedSeq_new        =" << qAlignedSeq_new << endl;
+
+
 	query_info->qAlignedSeq = qAlignedSeq_new;
 	query_info->tAlignedSeq = tAlignedSeq_new;
 
@@ -856,9 +872,11 @@ void FillGaps(query_info *query_info)
 
 void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info *query_info, int K_size)
 {
+	cout << "Add_Path_To_Backbone" << endl;
 	ofstream o_report_align;
 	bool boost_edges = 0;
 	string ContigPrefix = backbone_info->ContigPrefix;
+	cout << "ContigPrefix=" << ContigPrefix << endl;
 	if (ContigPrefix.size() > 0)
 	{
 		if (query_info->qName.substr(0, ContigPrefix.size()) == ContigPrefix)
@@ -866,7 +884,9 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 			boost_edges = 1;
 		}
 	}
-	bool DEBUG = 0;
+	bool DEBUG = 1;
+	cout << "query_info->tStrand=" << query_info->tStrand << endl;
+
 	if (query_info->tStrand == '-')
 	{
 		reverse_complement_str(query_info->qAlignedSeq);
@@ -908,7 +928,6 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		}
 	}
 
-
 	if ((query_info->report_e > query_info->report_b) && (query_info->tStart<query_info->report_b) && (query_info->tEnd>query_info->report_e))
 	{
 		o_report_align.open("subalign.txt", ios_base::app);
@@ -944,9 +963,13 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 	consensus_node *previous_node = NULL, *current_node = NULL;
 	int MatchPosition = -100, PreviousMatchPosition = -100;
 
+	// 开始构图
+	cout << "Start Build Graph" << endl;
+
 	for (int i = 0; i + K_size <= query_info->qAlignedSeq.size(); ++i)
 	{
 
+		// 如果是 deletion 的话, 调整一下 target position。就直接 continue 了
 		if (query_info->qAlignedSeq[i] == '-')
 		{
 			MatchPosition = -1;
@@ -957,8 +980,12 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 			}
 			continue;
 		}
+
+		// 如果是 insertion, match, mismatch 会继续
 		PreviousMatchPosition = MatchPosition;
 		MatchPosition = target_position;
+
+		// 判断当前position 是不是 match position
 		for (int j = 0; j < K_size; ++j)
 		{
 			if (query_info->qAlignedSeq[i + j] != query_info->tAlignedSeq[i + j])
@@ -968,9 +995,13 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 			}
 		}
 
+		// 如果是 insertion, match, mismatch 会继续
 		string KmerStr;
 		KmerStr.resize(K_size);
 		int KmerSize = 0;
+		// 确定当前位置， query 的 kmer 是啥
+
+
 		for (int j = i; j < query_info->qAlignedSeq.size(); ++j)
 		{
 			if (query_info->qAlignedSeq[j] != '-')
@@ -993,8 +1024,10 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		str2bitsarr(KmerStr.c_str(), K_size, &seq, 1);
 
 
+		// 如果是 match
 		if (MatchPosition >= 0)
 		{
+
 			query_info->n_exist++;
 			current_node = backbone_info->node_vec[MatchPosition];
 
@@ -1078,7 +1111,6 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		}
 		else
 		{
-
 			//link previous node to the current one
 
 			if (previous_node == NULL)
