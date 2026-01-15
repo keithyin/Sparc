@@ -1,7 +1,6 @@
 #ifndef __GRAPH_CONSTRUCTION_H
 #define __GRAPH_CONSTRUCTION_H
 
-
 #include <iostream>
 #include <string>
 #include <string.h>
@@ -16,7 +15,6 @@
 #include "Align.h"
 #include "BasicDataStructure.h"
 using namespace std;
-
 
 void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_info *backbone_info, int K_size)
 {
@@ -44,7 +42,7 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 	cout << "Read_arr_sz=" << Read_arr_sz << endl;
 
 	uint64_t seq;
-	//check the read to see if there is a saved kmer in the hashtable or bloom filter
+	// check the read to see if there is a saved kmer in the hashtable or bloom filter
 	consensus_node *previous_node = NULL, *current_node = NULL;
 	backbone_info->node_vec.resize(OverlappingKmers);
 
@@ -54,7 +52,7 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 		previous_node = current_node;
 		get_sub_arr(read->read_bits, read->readLen, j, K_size, &seq);
 
-		current_node = (consensus_node*)malloc(sizeof(consensus_node));
+		current_node = (consensus_node *)malloc(sizeof(consensus_node));
 		backbone_info->node_vec[j] = current_node;
 		memset(current_node, 0, sizeof(consensus_node));
 		memcpy(&(current_node->kmer), &seq, sizeof(uint64_t));
@@ -63,28 +61,21 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 		backbone_info->n_nodes++;
 		if (j >= 1)
 		{
-			//left edge,right edge
-			previous_node->right = (consensus_edge_node*)malloc(sizeof(consensus_edge_node));
+			// left edge,right edge
+			previous_node->right = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
 			memset(previous_node->right, 0, sizeof(consensus_edge_node));
 			previous_node->right->node_ptr = current_node;
-			//previous_node->right->edge_cov++;
-			previous_node->coord = j-1;
+			// previous_node->right->edge_cov++;
+			previous_node->coord = j - 1;
 			backbone_info->n_edges++;
-			current_node->left = (consensus_edge_node*)malloc(sizeof(consensus_edge_node));
+			current_node->left = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
 			memset(current_node->left, 0, sizeof(consensus_edge_node));
 			current_node->left->node_ptr = previous_node;
-			//current_node->left->edge_cov++;
+			// current_node->left->edge_cov++;
 			backbone_info->n_edges++;
 		}
-
-
 	}
-
-
-
-
 }
-
 
 void Consensus_Sparse_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_info *backbone_info, int K_size)
 {
@@ -107,7 +98,6 @@ void Consensus_Sparse_Kmer_Graph_Construction(struct ref_read_t *read, struct ba
 	int tot_bits = Read_arr_sz * 64;
 	uint64_t seq;
 
-
 	sparse_consensus_node *previous_node = NULL, *current_node = NULL;
 	backbone_info->sparse_node_vec.resize(OverlappingKmers);
 	for (int j = 0; j < OverlappingKmers; j++)
@@ -117,14 +107,14 @@ void Consensus_Sparse_Kmer_Graph_Construction(struct ref_read_t *read, struct ba
 	int last_position = -1;
 	for (int j = 0; j < OverlappingKmers; j++)
 	{
-		if (j%gap == 0)
+		if (j % gap == 0)
 		{
-			
+
 			previous_node = current_node;
 			get_sub_arr(read->read_bits, read->readLen, j, K_size, &seq);
-			//char test[100];
-			//bitsarr2str(&seq, K_size, test, 1);
-			current_node = (sparse_consensus_node*)malloc(sizeof(sparse_consensus_node));
+			// char test[100];
+			// bitsarr2str(&seq, K_size, test, 1);
+			current_node = (sparse_consensus_node *)malloc(sizeof(sparse_consensus_node));
 			backbone_info->sparse_node_vec[j] = current_node;
 			memset(current_node, 0, sizeof(sparse_consensus_node));
 			current_node->kmer = (uint32_t)seq;
@@ -133,40 +123,32 @@ void Consensus_Sparse_Kmer_Graph_Construction(struct ref_read_t *read, struct ba
 			current_node->coord = j;
 			backbone_info->n_nodes++;
 
-			//left edge,right edge
+			// left edge,right edge
 			uint64_t edge_bits;
 			if (j >= 1)
 			{
 				get_sub_arr(read->read_bits, read->readLen, last_position + K_size, gap, &edge_bits);
-				previous_node->right = (sparse_consensus_edge_node*)malloc(sizeof(sparse_consensus_edge_node));
+				previous_node->right = (sparse_consensus_edge_node *)malloc(sizeof(sparse_consensus_edge_node));
 				memset(previous_node->right, 0, sizeof(sparse_consensus_edge_node));
 				previous_node->right->node_ptr = current_node;
 				previous_node->right->edge = edge_bits;
 				previous_node->right->len = gap;
-				//previous_node->right->edge_cov++;//decide whether assign weight to the backbone edge
+				// previous_node->right->edge_cov++;//decide whether assign weight to the backbone edge
 				backbone_info->n_edges++;
 
 				get_sub_arr(read->read_bits, read->readLen, last_position, gap, &edge_bits);
-				current_node->left = (sparse_consensus_edge_node*)malloc(sizeof(sparse_consensus_edge_node));
+				current_node->left = (sparse_consensus_edge_node *)malloc(sizeof(sparse_consensus_edge_node));
 				memset(current_node->left, 0, sizeof(sparse_consensus_edge_node));
 				current_node->coord = j;
 				current_node->left->node_ptr = previous_node;
-				//current_node->left->edge_cov++;//decide whether assign weight to the backbone edge
+				// current_node->left->edge_cov++;//decide whether assign weight to the backbone edge
 				current_node->left->len = gap;
 				current_node->left->edge = edge_bits;
 				backbone_info->n_edges++;
 			}
 			last_position = j;
 		}
-
-
-
-
 	}
-
-
-
-
 }
 
 // 将 mismatch 拆成了两个 GAP
@@ -175,7 +157,7 @@ void NormalizeAlignment(query_info *query_info)
 {
 	cout << "query_info->tAlignedSeq=" << query_info->tAlignedSeq << endl;
 	cout << "query_info->qAlignedSeq=" << query_info->qAlignedSeq << endl;
-	
+
 	string qAlignedSeq_new, tAlignedSeq_new;
 	size_t seq_sz = query_info->qAlignedSeq.size();
 	qAlignedSeq_new.resize(2 * seq_sz);
@@ -193,18 +175,18 @@ void NormalizeAlignment(query_info *query_info)
 
 		if (query_info->qAlignedSeq[i] == query_info->tAlignedSeq[i])
 		{
-			//qAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
-			//tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
+			// qAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
+			// tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
 			qAlignedSeq_new[n_char] = query_info->qAlignedSeq[i];
 			tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
 			n_char++;
 		}
 		else
 		{
-			if (query_info->qAlignedSeq[i] != '-'&&query_info->tAlignedSeq[i] != '-')
+			if (query_info->qAlignedSeq[i] != '-' && query_info->tAlignedSeq[i] != '-')
 			{
-				//tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
-				// mismatch 的处理逻辑。target 先占住位置
+				// tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
+				//  mismatch 的处理逻辑。target 先占住位置
 				tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
 				n_char++;
 
@@ -213,14 +195,14 @@ void NormalizeAlignment(query_info *query_info)
 				{
 					// 找到 第一个不是 - 的 base
 					// ATC   ATC
-					// ACC   
+					// ACC
 					if (query_info->tAlignedSeq[j] != '-')
 					{
 						if (query_info->tAlignedSeq[j] == query_info->qAlignedSeq[i])
 						{
 							replace = 1;
 							query_info->tAlignedSeq[j] = '-';
-							//tAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
+							// tAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
 							tAlignedSeq_new[n_char] = query_info->qAlignedSeq[i];
 						}
 						break;
@@ -228,19 +210,18 @@ void NormalizeAlignment(query_info *query_info)
 				}
 				if (replace == 0)
 				{
-					//tAlignedSeq_new.push_back('-');
+					// tAlignedSeq_new.push_back('-');
 					tAlignedSeq_new[n_char] = '-';
 				}
 				n_char--;
 
-				//qAlignedSeq_new.push_back('-');
-				//qAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
+				// qAlignedSeq_new.push_back('-');
+				// qAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
 				qAlignedSeq_new[n_char] = '-';
 				n_char++;
 				qAlignedSeq_new[n_char] = query_info->qAlignedSeq[i];
 
 				n_char++;
-
 			}
 			else
 			{
@@ -255,12 +236,10 @@ void NormalizeAlignment(query_info *query_info)
 							{
 								query_info->qAlignedSeq[i] = query_info->qAlignedSeq[j];
 								query_info->qAlignedSeq[j] = '-';
-
 							}
 							break;
 						}
 					}
-
 				}
 				else
 				{
@@ -273,15 +252,14 @@ void NormalizeAlignment(query_info *query_info)
 							{
 								query_info->tAlignedSeq[i] = query_info->tAlignedSeq[j];
 								query_info->tAlignedSeq[j] = '-';
-
 							}
 							break;
 						}
 					}
 				}
 
-				//qAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
-				//tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
+				// qAlignedSeq_new.push_back(query_info->qAlignedSeq[i]);
+				// tAlignedSeq_new.push_back(query_info->tAlignedSeq[i]);
 				qAlignedSeq_new[n_char] = query_info->qAlignedSeq[i];
 				tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
 				n_char++;
@@ -294,28 +272,22 @@ void NormalizeAlignment(query_info *query_info)
 	cout << "tAlignedSeq_new        =" << tAlignedSeq_new << endl;
 	cout << "qAlignedSeq_new        =" << qAlignedSeq_new << endl;
 
-
 	query_info->qAlignedSeq = qAlignedSeq_new;
 	query_info->tAlignedSeq = tAlignedSeq_new;
-
-
-
-
 }
-
 
 void PatchGaps(query_info *query_info)
 {
 	bool Align = 1;
 	string qAlignedSeq_new, tAlignedSeq_new;
 	size_t seq_sz = query_info->qAlignedSeq.size();
-	qAlignedSeq_new.resize(2* seq_sz);
-	tAlignedSeq_new.resize(2* seq_sz);
+	qAlignedSeq_new.resize(2 * seq_sz);
+	tAlignedSeq_new.resize(2 * seq_sz);
 	int target_position = query_info->tStart;
 	string target_crop, query_crop;
 	int MinGapSize = 2, K_size = query_info->Patch_K, SearchDepth = query_info->Patch_D;
 	int n_char = 0;
-	
+
 	for (int i = 0; i < seq_sz; ++i)
 	{
 
@@ -325,13 +297,13 @@ void PatchGaps(query_info *query_info)
 		}
 
 		bool Patch = 0;
-			
+
 		if (query_info->qAlignedSeq[i] == '-')
 		{
 			int gap_bases = 1;
-			for (int j = i + 1; j <i+ MinGapSize; ++j)
+			for (int j = i + 1; j < i + MinGapSize; ++j)
 			{
-				if ((query_info->qAlignedSeq[j] != '-') || (j+1==seq_sz))
+				if ((query_info->qAlignedSeq[j] != '-') || (j + 1 == seq_sz))
 				{
 					gap_bases = 0;
 					break;
@@ -343,8 +315,8 @@ void PatchGaps(query_info *query_info)
 				Patch = 1;
 			}
 		}
-		
-		if (!Patch&&Align)
+
+		if (!Patch && Align)
 		{
 			qAlignedSeq_new[n_char] = query_info->qAlignedSeq[i];
 			tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
@@ -353,7 +325,7 @@ void PatchGaps(query_info *query_info)
 
 		if (Patch)
 		{
-			int  shift = -1;
+			int shift = -1;
 			map<string, int> target_position, query_position;
 			vector<int> target_index, query_index;
 			target_index.resize(300);
@@ -367,7 +339,6 @@ void PatchGaps(query_info *query_info)
 					target_crop.push_back(query_info->tAlignedSeq[j]);
 					target_index[target_bases] = j;
 					target_bases++;
-						
 				}
 				if (target_bases >= SearchDepth + K_size)
 				{
@@ -388,8 +359,6 @@ void PatchGaps(query_info *query_info)
 					break;
 				}
 			}
-
-
 
 			if (!Align)
 			{
@@ -414,7 +383,6 @@ void PatchGaps(query_info *query_info)
 					}
 				}
 
-
 				if (target_matched >= 0)
 				{
 					bool Debug = 0;
@@ -424,7 +392,7 @@ void PatchGaps(query_info *query_info)
 						cout << query_info->tAlignedSeq.substr(i, 100) << endl;
 						cout << query_info->qAlignedSeq.substr(i, 100) << endl;
 					}
-					//clear the query bases
+					// clear the query bases
 					for (int j = 0; j < query_matched + K_size; ++j)
 					{
 						query_info->qAlignedSeq[query_index[j]] = '-';
@@ -432,7 +400,6 @@ void PatchGaps(query_info *query_info)
 					for (int j = 0; j < K_size; ++j)
 					{
 						query_info->qAlignedSeq[target_index[target_matched + j]] = query_info->tAlignedSeq[target_index[target_matched + j]];
-
 					}
 
 					if (Debug)
@@ -441,10 +408,7 @@ void PatchGaps(query_info *query_info)
 						cout << query_info->tAlignedSeq.substr(i, 100) << endl;
 						cout << query_info->qAlignedSeq.substr(i, 100) << endl;
 					}
-
-
 				}
-
 			}
 			else
 			{
@@ -466,7 +430,7 @@ void PatchGaps(query_info *query_info)
 				if (Debug)
 				{
 					cout << i << endl;
-				
+
 					if (i == 27)
 					{
 						cout << "";
@@ -478,7 +442,7 @@ void PatchGaps(query_info *query_info)
 				if (Debug)
 				{
 					cout << "after: " << endl;
-					
+
 					cout << B_aln << endl;
 					cout << A_aln << endl;
 				}
@@ -499,7 +463,6 @@ void PatchGaps(query_info *query_info)
 					}
 				}
 
-
 				int cnt = 0;
 				int match_position = -1;
 				for (int jj = (int)A_aln.size() - 1; jj >= 0; --jj)
@@ -518,7 +481,7 @@ void PatchGaps(query_info *query_info)
 						break;
 					}
 				}
-				//append align
+				// append align
 
 				if (match_position == -1)
 				{
@@ -527,7 +490,7 @@ void PatchGaps(query_info *query_info)
 					tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
 					n_char++;
 
-					i=i + shift - 1;
+					i = i + shift - 1;
 					continue;
 				}
 				for (int jj = 0; jj <= match_position; ++jj)
@@ -535,10 +498,7 @@ void PatchGaps(query_info *query_info)
 					qAlignedSeq_new[n_char] = A_aln[jj];
 					tAlignedSeq_new[n_char] = B_aln[jj];
 					n_char++;
-
 				}
-				
-
 
 				int target_shift = 0, query_shift = 0;
 				for (int jj = 0; jj <= match_position; ++jj)
@@ -553,12 +513,11 @@ void PatchGaps(query_info *query_info)
 					}
 				}
 
-				
-				//clear the query bases
+				// clear the query bases
 				int q_base = 0;
 				for (int j = i; j < seq_sz; ++j)
 				{
-					if (query_info->qAlignedSeq[j]!='-')
+					if (query_info->qAlignedSeq[j] != '-')
 					{
 						q_base++;
 						query_info->qAlignedSeq[j] = '-';
@@ -568,7 +527,7 @@ void PatchGaps(query_info *query_info)
 						break;
 					}
 				}
-				
+
 				int t_base = 0;
 				for (int j = i; j < seq_sz; ++j)
 				{
@@ -580,20 +539,14 @@ void PatchGaps(query_info *query_info)
 					}
 					if (t_base >= target_shift)
 					{
-						shift = j-i;
+						shift = j - i;
 						break;
 					}
 				}
-
-
 			}
 
 			i = i + shift - 1;
-
-
 		}
-
-		
 	}
 
 	if (!Align)
@@ -606,10 +559,8 @@ void PatchGaps(query_info *query_info)
 				tAlignedSeq_new[n_char] = query_info->tAlignedSeq[i];
 				n_char++;
 			}
-
 		}
 	}
-	
 
 	qAlignedSeq_new.resize(n_char);
 	tAlignedSeq_new.resize(n_char);
@@ -617,8 +568,6 @@ void PatchGaps(query_info *query_info)
 
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
-
-
 
 void FillGaps(query_info *query_info)
 {
@@ -641,11 +590,11 @@ void FillGaps(query_info *query_info)
 		}
 
 		bool Patch = 0;
-		//detect gaps in query
+		// detect gaps in query
 		if (query_info->qAlignedSeq[i] == '-')
 		{
 			int gap_bases = 1;
-			for (int j = i + 1; j <i + MinGapSize; ++j)
+			for (int j = i + 1; j < i + MinGapSize; ++j)
 			{
 				if ((query_info->qAlignedSeq[j] != '-') || (j + 1 == seq_sz))
 				{
@@ -660,11 +609,11 @@ void FillGaps(query_info *query_info)
 			}
 		}
 
-		//detect gaps in target
+		// detect gaps in target
 		if (query_info->tAlignedSeq[i] == '-')
 		{
 			int gap_bases = 1;
-			for (int j = i + 1; j <i + MinGapSize; ++j)
+			for (int j = i + 1; j < i + MinGapSize; ++j)
 			{
 				if ((query_info->tAlignedSeq[j] != '-') || (j + 1 == seq_sz))
 				{
@@ -686,9 +635,8 @@ void FillGaps(query_info *query_info)
 			n_char++;
 			continue;
 		}
-		
-		
-		int  shift = -1;
+
+		int shift = -1;
 		vector<int> target_index, query_index;
 		target_index.resize(300);
 		query_index.resize(300);
@@ -700,10 +648,9 @@ void FillGaps(query_info *query_info)
 		{
 			if (query_info->tAlignedSeq[j] != '-')
 			{
-				target_crop[target_bases]=query_info->tAlignedSeq[j];
+				target_crop[target_bases] = query_info->tAlignedSeq[j];
 				target_index[target_bases] = j;
 				target_bases++;
-
 			}
 			if (target_bases >= SearchDepth + K_size)
 			{
@@ -715,7 +662,7 @@ void FillGaps(query_info *query_info)
 		{
 			if (query_info->qAlignedSeq[j] != '-')
 			{
-				query_crop[query_bases]=query_info->qAlignedSeq[j];
+				query_crop[query_bases] = query_info->qAlignedSeq[j];
 				query_index[query_bases] = j;
 				query_bases++;
 			}
@@ -744,7 +691,6 @@ void FillGaps(query_info *query_info)
 		{
 			cout << i << endl;
 
-			
 			cout << "before: " << endl;
 			cout << query_info->tAlignedSeq.substr(i, 70) << endl;
 			cout << query_info->qAlignedSeq.substr(i, 70) << endl;
@@ -756,7 +702,7 @@ void FillGaps(query_info *query_info)
 			cout << Target_aln << endl;
 			cout << Query_aln << endl;
 		}
-		
+
 		int cnt = 0;
 		int match_position = -1;
 		for (int jj = (int)Query_aln.size() - 1; jj >= 0; --jj)
@@ -775,41 +721,35 @@ void FillGaps(query_info *query_info)
 				break;
 			}
 		}
-		//append align
-		
+		// append align
+
 		int shift_end;
 		shift_end = i + 1;
 		if (query_crop.size() == target_crop.size() && target_crop.size() == SearchDepth + K_size)
 		{
-			shift_end = i + SearchDepth;// min(target_index[SearchDepth + K_size - 1], query_index[SearchDepth + K_size - 1]);
+			shift_end = i + SearchDepth; // min(target_index[SearchDepth + K_size - 1], query_index[SearchDepth + K_size - 1]);
 		}
 
 		if (match_position == -1)
 		{
 			int j;
-			for (j = i; j < shift_end ; ++j)
+			for (j = i; j < shift_end; ++j)
 			{
 				qAlignedSeq_new[n_char] = query_info->qAlignedSeq[j];
 				tAlignedSeq_new[n_char] = query_info->tAlignedSeq[j];
 				n_char++;
-				
 			}
-			i=j-1;
+			i = j - 1;
 
 			continue;
 		}
-
-
 
 		for (int jj = 0; jj <= match_position; ++jj)
 		{
 			qAlignedSeq_new[n_char] = Query_aln[jj];
 			tAlignedSeq_new[n_char] = Target_aln[jj];
 			n_char++;
-
 		}
-
-
 
 		int target_shift = 0, query_shift = 0;
 		for (int jj = 0; jj <= match_position; ++jj)
@@ -824,8 +764,7 @@ void FillGaps(query_info *query_info)
 			}
 		}
 
-
-		//clear the aligned bases
+		// clear the aligned bases
 		int q_base = 0;
 		for (int j = i; j < seq_sz; ++j)
 		{
@@ -838,7 +777,6 @@ void FillGaps(query_info *query_info)
 			{
 				shift = query_index[q_base - 1];
 				break;
-				
 			}
 		}
 
@@ -853,22 +791,19 @@ void FillGaps(query_info *query_info)
 			}
 			if (t_base >= target_shift)
 			{
-				shift = min(shift,target_index[t_base - 1]);
+				shift = min(shift, target_index[t_base - 1]);
 				break;
 			}
 		}
-		
-		i = shift ;
+
+		i = shift;
 	}
-
-
 
 	qAlignedSeq_new.resize(n_char);
 	tAlignedSeq_new.resize(n_char);
 	query_info->qAlignedSeq = qAlignedSeq_new;
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
-
 
 void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info *query_info, int K_size)
 {
@@ -892,26 +827,21 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		reverse_complement_str(query_info->qAlignedSeq);
 		reverse_complement_str(query_info->tAlignedSeq);
 		reverse(query_info->matchPattern.begin(), query_info->matchPattern.end());
-
 	}
 
 	NormalizeAlignment(query_info);
 	if (query_info->Patch)
 	{
 		PatchGaps(query_info);
-
 	}
 	else
 	{
 		if (query_info->Fill)
 		{
 			FillGaps(query_info);
-
 		}
-
 	}
 	//		FillGaps(query_info);
-
 
 	for (int i = 0; i < query_info->tAlignedSeq.size(); ++i)
 	{
@@ -928,7 +858,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		}
 	}
 
-	if ((query_info->report_e > query_info->report_b) && (query_info->tStart<query_info->report_b) && (query_info->tEnd>query_info->report_e))
+	if ((query_info->report_e > query_info->report_b) && (query_info->tStart < query_info->report_b) && (query_info->tEnd > query_info->report_e))
 	{
 		o_report_align.open("subalign.txt", ios_base::app);
 		int target_position = query_info->tStart;
@@ -939,26 +869,27 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 			{
 				target_position++;
 			}
-			if (target_position>query_info->report_b)
+			if (target_position > query_info->report_b)
 			{
 				target_crop.push_back(query_info->tAlignedSeq[k]);
 				query_crop.push_back(query_info->qAlignedSeq[k]);
 				//
 			}
 
-			if (target_position>query_info->report_e)
+			if (target_position > query_info->report_e)
 			{
-				o_report_align << ">target_" << query_info->read_idx << endl << target_crop << endl;//
-				o_report_align << ">query_" << query_info->read_idx << endl << query_crop << endl;//
+				o_report_align << ">target_" << query_info->read_idx << endl
+							   << target_crop << endl; //
+				o_report_align << ">query_" << query_info->read_idx << endl
+							   << query_crop << endl; //
 				break;
 			}
 		}
 	}
 
-
 	string backbone_seg = backbone_info->backbone.substr(query_info->tStart, query_info->tEnd - query_info->tStart);
-	//cout << backbone_seg << endl;
-	//cout << target_seg << endl;
+	// cout << backbone_seg << endl;
+	// cout << target_seg << endl;
 	int target_position = query_info->tStart;
 	consensus_node *previous_node = NULL, *current_node = NULL;
 	int MatchPosition = -100, PreviousMatchPosition = -100;
@@ -970,6 +901,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 	{
 
 		// 如果是 deletion 的话, 调整一下 target position。就直接 continue 了
+		// 没有新的 kmer 产生，cov 也不会发生变化
 		if (query_info->qAlignedSeq[i] == '-')
 		{
 			MatchPosition = -1;
@@ -1001,15 +933,15 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		int KmerSize = 0;
 		// 确定当前位置， query 的 kmer 是啥
 
-
+		// 在这个位置, 可能是 insertion 区域、match 区域。
 		for (int j = i; j < query_info->qAlignedSeq.size(); ++j)
 		{
 			if (query_info->qAlignedSeq[j] != '-')
 			{
-				KmerStr[KmerSize]=query_info->qAlignedSeq[j];
+				KmerStr[KmerSize] = query_info->qAlignedSeq[j];
 				KmerSize++;
 			}
-			
+
 			if (KmerSize == K_size)
 			{
 				break;
@@ -1023,8 +955,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		uint64_t seq = 0;
 		str2bitsarr(KmerStr.c_str(), K_size, &seq, 1);
 
-
-		// 如果是 match
+		// 如果是 match。 这里的 match 是 equal
 		if (MatchPosition >= 0)
 		{
 
@@ -1036,7 +967,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 				current_node->cov++;
 			}
 
-			//link previous node to the current one
+			// link previous node to the current one
 
 			if (previous_node != NULL)
 			{
@@ -1056,7 +987,6 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 
 						break;
 					}
-
 
 					edge_p2p = &((*edge_p2p)->nxt_edge);
 				}
@@ -1104,14 +1034,12 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 					}
 					backbone_info->n_edges++;
 				}
-
-
 			}
-
 		}
 		else
 		{
-			//link previous node to the current one
+			// 在这个位置, 可能是 insertion 区域、mismatch 区域。
+			// link previous node to the current one
 
 			if (previous_node == NULL)
 			{
@@ -1123,7 +1051,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 				backbone_info->n_nodes++;
 				previous_node = current_node;
 				query_info->n_new++;
-				//cout << i << ", ";
+				// cout << i << ", ";
 			}
 			else
 			{
@@ -1165,11 +1093,9 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 					}
 					backbone_info->n_edges++;
 					backbone_info->n_nodes++;
-					//cout << i <<", ";
-
-
+					// cout << i <<", ";
 				}
-				//link current node to previous
+				// link current node to previous
 				edge_p2p = &(current_node->left);
 				while (*edge_p2p != NULL)
 				{
@@ -1198,7 +1124,6 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 					}
 					backbone_info->n_edges++;
 				}
-
 			}
 		}
 
@@ -1208,15 +1133,12 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 		{
 			target_position++;
 		}
-
 	}
-
-
 }
 
 void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct query_info *query_info, int K_size)
 {
-	//bool TEST = 1;
+	// bool TEST = 1;
 	int gap = backbone_info->gap;
 	ofstream o_report_align;
 	bool boost_edges = 0;
@@ -1234,11 +1156,10 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		reverse_complement_str(query_info->qAlignedSeq);
 		reverse_complement_str(query_info->tAlignedSeq);
 		reverse(query_info->matchPattern.begin(), query_info->matchPattern.end());
-
 	}
 	if (query_info->read_idx == 327)
 	{
-		//cout << "16" << endl;
+		// cout << "16" << endl;
 	}
 	int bases_q1 = 0, bases_t1 = 0, bases_q2 = 0, bases_t2 = 0;
 	string t1, q1;
@@ -1247,28 +1168,25 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		if (query_info->qAlignedSeq[i] != '-')
 		{
 			bases_q1++;
-		//	q1.push_back(query_info->qAlignedSeq[i]);
+			//	q1.push_back(query_info->qAlignedSeq[i]);
 		}
 		if (query_info->tAlignedSeq[i] != '-')
 		{
 			bases_t1++;
-		//	t1.push_back(query_info->tAlignedSeq[i]);
+			//	t1.push_back(query_info->tAlignedSeq[i]);
 		}
 	}
 	NormalizeAlignment(query_info);
 	if (query_info->Patch)
 	{
 		PatchGaps(query_info);
-
 	}
 	else
 	{
 		if (query_info->Fill)
 		{
 			FillGaps(query_info);
-
 		}
-
 	}
 	string t2, q2;
 	for (int i = 0; i < query_info->tAlignedSeq.size(); ++i)
@@ -1276,22 +1194,22 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		if (query_info->qAlignedSeq[i] != '-')
 		{
 			bases_q2++;
-		//	q2.push_back(query_info->qAlignedSeq[i]);
+			//	q2.push_back(query_info->qAlignedSeq[i]);
 		}
 		if (query_info->tAlignedSeq[i] != '-')
 		{
 			bases_t2++;
-		//	t2.push_back(query_info->tAlignedSeq[i]);
+			//	t2.push_back(query_info->tAlignedSeq[i]);
 		}
 	}
 	if ((bases_q1 != bases_q2) || (bases_t1 != bases_t2))
 	{
-		//if (q1.size() != q2.size())
+		// if (q1.size() != q2.size())
 		//{
 		//	cout << q1.substr(0,200) << endl;
 		//	cout << q2.substr(0, 200) << endl;
-		//}
-		//cout << "Normalization error." << endl;
+		// }
+		// cout << "Normalization error." << endl;
 	}
 	for (int i = 0; i < query_info->tAlignedSeq.size(); ++i)
 	{
@@ -1308,7 +1226,7 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		}
 	}
 
-	if ((query_info->report_e > query_info->report_b) && (query_info->tStart<query_info->report_b) && (query_info->tEnd>query_info->report_e))
+	if ((query_info->report_e > query_info->report_b) && (query_info->tStart < query_info->report_b) && (query_info->tEnd > query_info->report_e))
 	{
 		o_report_align.open("subalign.txt", ios_base::app);
 		int target_position = query_info->tStart;
@@ -1319,22 +1237,23 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 			{
 				target_position++;
 			}
-			if (target_position>query_info->report_b)
+			if (target_position > query_info->report_b)
 			{
 				target_crop.push_back(query_info->tAlignedSeq[k]);
 				query_crop.push_back(query_info->qAlignedSeq[k]);
 				//
 			}
 
-			if (target_position>query_info->report_e)
+			if (target_position > query_info->report_e)
 			{
-				o_report_align << ">target_" << query_info->read_idx << endl << target_crop << endl;//
-				o_report_align << ">query_" << query_info->read_idx << endl << query_crop << endl;//
+				o_report_align << ">target_" << query_info->read_idx << endl
+							   << target_crop << endl; //
+				o_report_align << ">query_" << query_info->read_idx << endl
+							   << query_crop << endl; //
 				break;
 			}
 		}
 	}
-
 
 	int target_position = query_info->tStart;
 	sparse_consensus_node *previous_node = NULL, *current_node = NULL;
@@ -1403,12 +1322,9 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 			}
 			*/
 		}
-
-		
 	}
 
-
-	for (int i = 0; i  < query_info->qAlignedSeq.size(); ++i)
+	for (int i = 0; i < query_info->qAlignedSeq.size(); ++i)
 	{
 		matched[i] = 0;
 	}
@@ -1419,7 +1335,7 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		int match_bases = 0;
 		for (int j = 0; j < query_info->tAlignedSeq.size(); ++j)
 		{
-			if (query_info->qAlignedSeq[i + j] == query_info->tAlignedSeq[i + j] )
+			if (query_info->qAlignedSeq[i + j] == query_info->tAlignedSeq[i + j])
 			{
 				if (query_info->qAlignedSeq[i + j] != '-')
 				{
@@ -1429,14 +1345,12 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 				{
 					break;
 				}
-				
 			}
 			else
 			{
 				match = 0;
 				break;
 			}
-
 		}
 
 		matched[i] = match;
@@ -1444,9 +1358,7 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		{
 			qStart = i;
 		}
-		
 	}
-	
 
 	if (qStart < 0)
 	{
@@ -1460,7 +1372,7 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 	else
 	{
 		string KmerStr = processed_query.substr(Align2Query[qStart], K_size);
-		
+
 		if (KmerStr.size() != K_size)
 		{
 			return;
@@ -1477,28 +1389,27 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 
 	for (int i = qStart; i < query_info->qAlignedSeq.size();)
 	{
-		//explore the edges of the current node
-		
+		// explore the edges of the current node
+
 		if (query_info->read_idx == 8 && i >= 167)
 		{
 			cout << "";
 		}
 		if (query_info->qAlignedSeq[i] == '-')
 		{
-			i++;// must skip to prmise the correctness of the algorithm
+			i++; // must skip to prmise the correctness of the algorithm
 			continue;
 		}
-		current_node->cov++;//increase the coverage
+		current_node->cov++; // increase the coverage
 		string EdgeStr;
 		EdgeStr = processed_query.substr(Align2Query[i] + K_size, gap);
-		
 
 		if (EdgeStr.size() == 0)
 		{
-			
+
 			return;
 		}
-		struct sparse_consensus_edge_node* current_edge = current_node->right;
+		struct sparse_consensus_edge_node *current_edge = current_node->right;
 		bool edge_exists = 0;
 		while (current_edge != NULL)
 		{
@@ -1509,23 +1420,23 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 			}
 			uint64_t edge_bits;
 			str2bitsarr(EdgeStr.c_str(), current_edge->len, &edge_bits, 1);
-			
+
 			if (edge_bits == current_edge->edge)
 			{
-				//cout << "Path exists.";
-				
+				// cout << "Path exists.";
+
 				bool edge_matched = 0;
 
 				int align_idx = Query2Align[Align2Query[i] + current_edge->len];
 				if (matched[align_idx] && backbone_info->sparse_node_vec[Align2Backbone[align_idx]] == current_edge->node_ptr)
 				{
-					edge_matched = 1;//backbone matched, so move on
+					edge_matched = 1; // backbone matched, so move on
 				}
 				if (!matched[align_idx] && !current_edge->node_ptr->in_backbone)
 				{
-					edge_matched = 1;//off-backbone branch matched, so move on
+					edge_matched = 1; // off-backbone branch matched, so move on
 				}
-				
+
 				if (edge_matched)
 				{
 					current_edge->edge_cov++;
@@ -1533,18 +1444,18 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 					{
 						current_edge->edge_cov += backbone_info->boost;
 					}
-					
+
 					edge_exists = 1;
 					query_info->n_exist++;
 					current_node = current_edge->node_ptr;
-					
+
 					string LeftEdgeStr = processed_query.substr(Align2Query[i], current_edge->len);
-					
+
 					str2bitsarr(LeftEdgeStr.c_str(), current_edge->len, &edge_bits, 1);
-					struct sparse_consensus_edge_node* left_edge = current_node->left;
+					struct sparse_consensus_edge_node *left_edge = current_node->left;
 					while (left_edge != NULL)
 					{
-						if (edge_bits == left_edge->edge&& LeftEdgeStr.size() == current_edge->len)
+						if (edge_bits == left_edge->edge && LeftEdgeStr.size() == current_edge->len)
 						{
 							break;
 						}
@@ -1560,17 +1471,11 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 						cout << "Error." << endl;
 						return;
 						cout << "left edge error." << endl;
-
 					}
-
-					
 
 					i = align_idx;
 					break;
-
 				}
-
-
 			}
 
 			current_edge = current_edge->nxt_edge;
@@ -1581,8 +1486,7 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 			continue;
 		}
 
-
-		//There is a backbone match but was not recorded, or there is no match.
+		// There is a backbone match but was not recorded, or there is no match.
 
 		/////non-matching, so pick the best stretch
 		// case 1, within g bases, there is a match with the backbone -- put the node into the backbone nodes
@@ -1591,14 +1495,14 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 		current_node->cov++;
 		bool backbone_match = 0;
 
-		int jj;//jj is the position in the processed query read
-		int ii = Align2Query[i];// these two lines are very tricky, 
+		int jj;					 // jj is the position in the processed query read
+		int ii = Align2Query[i]; // these two lines are very tricky,
 		int align_idx = -1;
 		for (jj = ii + 1; jj <= ii + gap; ++jj)
 		{
 			//	cout << jj << endl;
 			align_idx = Query2Align[jj];
-			if (matched[align_idx] )
+			if (matched[align_idx])
 			{
 				backbone_match = 1;
 				break;
@@ -1619,10 +1523,10 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 			return;
 		}
 
-		sparse_consensus_node* next_node;
-		if (backbone_match&& backbone_info->sparse_node_vec[Align2Backbone[align_idx]]!=NULL)
+		sparse_consensus_node *next_node;
+		if (backbone_match && backbone_info->sparse_node_vec[Align2Backbone[align_idx]] != NULL)
 		{
-			//add edges to the existing backbone node.
+			// add edges to the existing backbone node.
 			next_node = backbone_info->sparse_node_vec[Align2Backbone[align_idx]];
 			if (next_node == current_node)
 			{
@@ -1631,14 +1535,12 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 				i++;
 				return;
 			}
-
-
 		}
 		else
 		{
-			//allocate a new node and new edges 
+			// allocate a new node and new edges
 			string kmer_str = temp_str.substr(temp_str.size() - K_size, K_size);
-			next_node = (sparse_consensus_node*)malloc(sizeof(sparse_consensus_node));
+			next_node = (sparse_consensus_node *)malloc(sizeof(sparse_consensus_node));
 			memset(next_node, 0, sizeof(sparse_consensus_node));
 			query_info->n_new++;
 			uint64_t seq;
@@ -1651,12 +1553,11 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 				next_node->coord = Align2Backbone[align_idx];
 			}
 			backbone_info->n_nodes++;
-			//cout << i << ", ";
-			//cout << Query2Align[Align2Query[i]+1] << ", ";
+			// cout << i << ", ";
+			// cout << Query2Align[Align2Query[i]+1] << ", ";
 		}
 
-
-		//append edges, quite tricky
+		// append edges, quite tricky
 		string edge_str;
 		edge_str = temp_str.substr(K_size, temp_str.size());
 		if (edge_str.size() > 1)
@@ -1692,8 +1593,6 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 			backbone_info->n_edges++;
 		}
 
-
-
 		edge_str = temp_str.substr(0, temp_str.size() - K_size);
 		str2bitsarr(edge_str.c_str(), edge_str.size(), &edge_bits, 1);
 
@@ -1725,7 +1624,7 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 
 		char kmer_str[100];
 		bitsarr2str(&kmer_bits, K_size, kmer_str, 1);
-		if ((*edge_p2p)->len == K_size&&strcmp(kmer_str, edge_str.c_str()) != 0)
+		if ((*edge_p2p)->len == K_size && strcmp(kmer_str, edge_str.c_str()) != 0)
 		{
 			cout << "bug" << endl;
 			cout << kmer_str << endl;
@@ -1734,13 +1633,8 @@ void Add_Path_To_Backbone_Sparse(struct backbone_info *backbone_info, struct que
 
 		current_node = next_node;
 		i = align_idx;
-		//i = i + 1;
-
+		// i = i + 1;
 	}
-
 }
-
-
-
 
 #endif

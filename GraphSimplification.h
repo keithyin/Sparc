@@ -14,6 +14,24 @@
 #include "GraphConstruction.h"
 using namespace std;
 
+char kmer2base(uint32_t kmer) {
+	if (kmer == 0) {
+		return 'A';
+	}
+	if (kmer == 1) {
+		return 'C';
+	}
+
+	if (kmer == 2) {
+		return 'G';
+	}
+
+	if (kmer == 3) {
+		return 'T';
+	}
+
+	return 'N';
+}
 
 void MergeNodes(struct backbone_info *backbone_info)
 {
@@ -157,12 +175,12 @@ void OutputPathsFromANode(consensus_node * begin_node, string filename, map<cons
 				}
 				if (edge_ptr->node_ptr->coord > 0)
 				{
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << edge_ptr->node_ptr->kmer  << "(" << edge_ptr->node_ptr->coord << ")" "\"];" << endl;
+					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << kmer2base(edge_ptr->node_ptr->kmer)  << "(" << edge_ptr->node_ptr->coord << ")" "\"];" << endl;
 
 				}
 				else
 				{
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << edge_ptr->node_ptr->kmer << "\"];" << endl;
+					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << kmer2base(edge_ptr->node_ptr->kmer) << "\"];" << endl;
 
 				}
 				
@@ -170,7 +188,7 @@ void OutputPathsFromANode(consensus_node * begin_node, string filename, map<cons
 			else
 			{
 				
-				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [label=\"" << edge_ptr->node_ptr->kmer << "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]" "\"];" << endl;
+				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [label=\"" << kmer2base(edge_ptr->node_ptr->kmer) << "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]" "\"];" << endl;
 				
 			}
 				
@@ -254,13 +272,15 @@ void OutputPathsFromASparseNode(sparse_consensus_node * begin_node, string filen
 
 
 
+
+
 void OutputSubGraph(struct backbone_info *backbone_info, int begin, int end, string filename)
 {
 
 
 	ofstream o_graph(filename.c_str());
 	o_graph << "digraph G {" << endl;
-	o_graph << "\"" << backbone_info->node_vec[begin] << "\"" << " [label=\"" << backbone_info->node_vec[begin]->kmer << "(" << backbone_info->node_vec[begin]->coord << ")" "\"];" << endl;
+	o_graph << "\"" << backbone_info->node_vec[begin] << "\"" << " [label=\"" << kmer2base(backbone_info->node_vec[begin]->kmer) << "(" << backbone_info->node_vec[begin]->coord << ")" "\"];" << endl;
 
 	o_graph.close();
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
