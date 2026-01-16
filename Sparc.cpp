@@ -254,12 +254,6 @@ int main(int argc, char *argv[])
 		Consensus_Kmer_Graph_Construction(&ref, &backbone_info_org, K_size);
 	}
 
-	if (Debug == 1 || gap != 1)
-	{
-
-		Consensus_Sparse_Kmer_Graph_Construction(&ref, &backbone_info, K_size);
-	}
-
 	// cout << "Nodes: " << backbone_info.n_nodes << " nodes." << endl;
 
 	// cout << "Edges: " << backbone_info.n_edges << " edges." << endl;
@@ -326,6 +320,7 @@ int main(int argc, char *argv[])
 		}
 		uint64_t cum_sum = 0;
 
+		// coverage 值所 对应的 计数
 		map<int, int> cov_cnt;
 
 		backbone_info_org.cov_vec.resize(backbone_info_org.node_vec.size());
