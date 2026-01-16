@@ -324,11 +324,16 @@ int main(int argc, char *argv[])
 		map<int, int> cov_cnt;
 
 		backbone_info_org.cov_vec.resize(backbone_info_org.node_vec.size());
+		cout << "backbone.size=" << backbone.size() << endl;
+		cout << "backbone_info_org.node_vec.size=" << backbone_info_org.node_vec.size() << endl;
 		int radius = 200;
 		if (radius > backbone.size())
 		{
 			radius = backbone.size() - 1;
 		}
+
+		// 这个 radius 的 cov 的 count ++ 是要干什么？
+		// 滑动窗口最大覆盖度值的 计算
 		for (int i = 0; i < radius; ++i)
 		{
 			cov_cnt[backbone_info_org.node_vec[i]->cov]++;
@@ -338,10 +343,13 @@ int main(int argc, char *argv[])
 		{
 			if (i >= radius)
 			{
+				// 上边++，这边--，不知道在搞些是什么
 				cov_cnt[backbone_info_org.node_vec[i - radius]->cov]--;
 				if (cov_cnt[backbone_info_org.node_vec[i - radius]->cov] <= 0)
 				{
+					// 会删除一些 coverage
 					cov_cnt.erase(backbone_info_org.node_vec[i - radius]->cov);
+					
 				}
 			}
 			if (i + radius < backbone_info_org.node_vec.size())
