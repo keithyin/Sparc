@@ -284,7 +284,7 @@ void BFSFindBestPath(struct backbone_info *backbone_info, int node_idx)
 		{
 			// if (edge_ptr->node_ptr->score < (current_node->score + edge_ptr->edge_cov))
 			bool update = 0;
-			if (backbone_info->ScoringMethod == 1)
+			if (backbone_info->ScoringMethod == 1) // 默认用的 ScoringMethod = 2
 			{
 				double score_org = 0.0;
 				double score_new = 0.0;
@@ -351,7 +351,7 @@ void BFSFindBestPath(struct backbone_info *backbone_info, int node_idx)
 			int new_score = 0;
 			if (backbone_info->ScoringMethod == 2)
 			{
-				if (backbone_info->threshold < 0.0)
+				if (backbone_info->threshold < 0.0) // 一般用的是 0.2
 				{
 					new_score = (current_node->score + max(edge_ptr->edge_cov - backbone_info->CovTh, -2));
 					if (edge_ptr->node_ptr->score < new_score)
@@ -362,7 +362,7 @@ void BFSFindBestPath(struct backbone_info *backbone_info, int node_idx)
 				else
 				{
 					int threshold = round((max_cov * backbone_info->threshold));
-					if (threshold < backbone_info->CovTh)
+					if (threshold < backbone_info->CovTh) // 一般是2
 					{
 						threshold = backbone_info->CovTh;
 					}

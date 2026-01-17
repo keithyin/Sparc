@@ -326,7 +326,10 @@ int main(int argc, char *argv[])
 		backbone_info_org.cov_vec.resize(backbone_info_org.node_vec.size());
 		cout << "backbone.size=" << backbone.size() << endl;
 		cout << "backbone_info_org.node_vec.size=" << backbone_info_org.node_vec.size() << endl;
+		
+		// 这个半径需要调整一下？ TODO
 		int radius = 200;
+		
 		if (radius > backbone.size())
 		{
 			radius = backbone.size() - 1;
@@ -502,7 +505,7 @@ int main(int argc, char *argv[])
 	}
 	cout << "Finished." << endl;
 
-	// ClearInfo(&backbone_info);
+	ClearInfo(&backbone_info);
 
 	/*
 	o_profile << "#match, mismatch, deletion" << endl;
