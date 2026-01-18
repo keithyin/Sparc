@@ -505,7 +505,9 @@ int main(int argc, char *argv[])
 	}
 	cout << "Finished." << endl;
 
-	ClearInfo(&backbone_info);
+	// ClearInfo(&backbone_info_org);
+	FreeInfo(&backbone_info_org);
+	free(ref.read_bits);
 
 	/*
 	o_profile << "#match, mismatch, deletion" << endl;

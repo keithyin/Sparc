@@ -468,6 +468,42 @@ void FindBestPath(struct backbone_info *backbone_info)
 	// cout << n_Rbranched << " right branches." << endl;
 }
 
+void BFSFree(struct backbone_info *backbone_info, int node_idx)
+{
+	consensus_node *begin_node = backbone_info->node_vec[node_idx];
+	list<consensus_node *> node_list;
+	node_list.push_back(begin_node);
+	
+	while (node_list.size() > 0)
+	{
+		consensus_node *current_node = node_list.front();
+		node_list.pop_front();
+		consensus_edge_node *edge_ptr = current_node->right;
+		while (edge_ptr != NULL)
+		{
+			edge_ptr->node_ptr->coord = 0;
+
+			if (!edge_ptr->node_ptr->in_backbone)
+			{
+				node_list.push_back(edge_ptr->node_ptr);
+			}
+			consensus_edge_node *nxt_edge_ptr = edge_ptr->nxt_edge;
+			free(edge_ptr);
+
+			edge_ptr = nxt_edge_ptr;
+		}
+
+		consensus_edge_node *prev_edge_ptr = current_node->left;
+		while (prev_edge_ptr != NULL) {
+			consensus_edge_node *edge_ptr = prev_edge_ptr->nxt_edge;
+			free(prev_edge_ptr);
+			prev_edge_ptr = edge_ptr;
+		}
+		free(current_node);
+
+	}
+}
+
 void BFSClear(struct backbone_info *backbone_info, int node_idx)
 {
 	consensus_node *begin_node = backbone_info->node_vec[node_idx];
@@ -491,6 +527,7 @@ void BFSClear(struct backbone_info *backbone_info, int node_idx)
 
 			edge_ptr = edge_ptr->nxt_edge;
 		}
+
 	}
 }
 
@@ -506,6 +543,18 @@ void ClearInfo(struct backbone_info *backbone_info)
 	}
 
 	cout << "Nodes information clear." << endl;
+}
+
+
+void FreeInfo(struct backbone_info *backbone_info) {
+	
+	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
+	{
+
+		BFSFree(backbone_info, i);
+	}
+
+	cout << "all resource freed." << endl;
 }
 
 #endif
