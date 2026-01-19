@@ -159,6 +159,7 @@ struct ConsensusNode
 	int64_t score;
 	uint32_t cns_coord;
 	uint32_t cov : 28, used : 1, in_backbone : 1, in_cns_backbone : 1;
+	bool selected;
 	ConsensusEdgeNode *left;
 	ConsensusEdgeNode *right;
 	ConsensusNode *last_node;

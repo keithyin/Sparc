@@ -173,6 +173,8 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 
 		if (cov_cnt.size() > 0)
 		{
+			// std::cout << "cov_cnt_max=" << cov_cnt.rbegin()->first << std::endl;
+			// ;
 			backbone_info_org.cov_vec[i] = cov_cnt.rbegin()->first;
 		}
 		else
@@ -248,9 +250,11 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	backbone_info_org.node_vec.push_back(current_node);
 	if (current_node != NULL)
 	{
+		current_node->selected = true;
 		current_node = current_node->last_node;
 		while (current_node != NULL)
 		{
+			current_node->selected = true;
 			backbone_info_org.node_vec.push_back(current_node);
 			cns_pos--;
 			current_node = current_node->last_node;
@@ -263,10 +267,11 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		backbone_info_org.node_vec[ii]->in_backbone = 1;
 		backbone_info_org.node_vec[ii]->cns_coord = ii + 1;
 	}
+
 	filename = "subgraph_cns.dot";
-	if (cns_end > cns_begin && debug)
+	if (subgraph_end > subgraph_begin && debug)
 	{
-		SparcOutputSubGraph(&backbone_info_org, cns_begin, cns_end, filename);
+		SparcOutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
 	}
 	if (debug)
 	{

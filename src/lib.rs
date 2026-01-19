@@ -178,6 +178,7 @@ mod tests {
             query.fill_c_query(c_query);
             c_queries.push(c_query);
 
+            let c_query = NewQuery();
             let query = Query {
                 query_aligned_seq: "GCTCGGCCCAA".to_string(),
                 target_aligned_seq: "GATCGGGCTAA".to_string(),
@@ -189,6 +190,21 @@ mod tests {
             };
             query.fill_c_query(c_query);
             c_queries.push(c_query);
+
+            let c_query = NewQuery();
+            let query = Query {
+                query_aligned_seq: "GCTCGGCCCAA".to_string(),
+                target_aligned_seq: "GATCGGGCTAA".to_string(),
+                rev_strand: false,
+                query_start: 0,
+                query_end: 11,
+                target_start: 0,
+                target_end: 11,
+            };
+            query.fill_c_query(c_query);
+            c_queries.push(c_query);
+
+            let c_query = NewQuery();
 
             let query = Query {
                 query_aligned_seq: "GCTCGGCCCAA".to_string(),
@@ -202,17 +218,7 @@ mod tests {
             query.fill_c_query(c_query);
             c_queries.push(c_query);
 
-            let query = Query {
-                query_aligned_seq: "GCTCGGCCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            };
-            query.fill_c_query(c_query);
-            c_queries.push(c_query);
+            let c_query = NewQuery();
 
             let query = Query {
                 query_aligned_seq: "GATCGCGCCAA".to_string(),
@@ -226,6 +232,8 @@ mod tests {
             query.fill_c_query(c_query);
             c_queries.push(c_query);
 
+            let c_query = NewQuery();
+
             let query = Query {
                 query_aligned_seq: "GATCGCGCCAA".to_string(),
                 target_aligned_seq: "GATCGGGCTAA".to_string(),
@@ -237,7 +245,6 @@ mod tests {
             };
             query.fill_c_query(c_query);
             c_queries.push(c_query);
-
         }
 
         let mut config = SparcConfig::default();

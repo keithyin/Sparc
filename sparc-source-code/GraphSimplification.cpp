@@ -152,20 +152,28 @@ void SparcOutputPathsFromANode(ConsensusNode *begin_node, string filename, map<C
 				}
 				if (edge_ptr->node_ptr->coord > 0)
 				{
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "(" << edge_ptr->node_ptr->coord << ")"
-																																										  "\"];"
+					std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
+					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\""
+							<< SparcKmer2base(edge_ptr->node_ptr->kmer)
+							<< "(" << edge_ptr->node_ptr->coord << ")"
+							<< "\"];"
 							<< endl;
 				}
 				else
 				{
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "\"];" << endl;
+					std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
+
+					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "<" << edge_ptr->node_ptr->cov << ">" << "\"];" << endl;
 				}
 			}
 			else
 			{
+				std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
 
-				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]"
-																																																		   "\"];"
+				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer)
+						<< "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]"
+						<< "<" << edge_ptr->node_ptr->cov << ">"
+						<< "\"];"
 						<< endl;
 			}
 
@@ -181,8 +189,13 @@ void SparcOutputSubGraph(struct Backbone *backbone_info, int begin, int end, str
 
 	ofstream o_graph(filename.c_str());
 	o_graph << "digraph G {" << endl;
-	o_graph << "\"" << backbone_info->node_vec[begin] << "\"" << " [label=\"" << SparcKmer2base(backbone_info->node_vec[begin]->kmer) << "(" << backbone_info->node_vec[begin]->coord << ")"
-																																													"\"];"
+	std::string color = backbone_info->node_vec[begin]->selected ? "color=red," : "";
+	o_graph << "\"" << backbone_info->node_vec[begin]
+			<< "\"" << " [" << color << "label=\""
+			<< SparcKmer2base(backbone_info->node_vec[begin]->kmer)
+			<< "(" << backbone_info->node_vec[begin]->coord << ")"
+			<< "<" << backbone_info->node_vec[begin]->cov << ">"
+															 "\"];"
 			<< endl;
 
 	o_graph.close();
@@ -473,7 +486,7 @@ void SparcBFSFree(struct Backbone *backbone_info, int node_idx)
 	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
 	list<ConsensusNode *> node_list;
 	node_list.push_back(begin_node);
-	
+
 	while (node_list.size() > 0)
 	{
 		ConsensusNode *current_node = node_list.front();
@@ -494,13 +507,13 @@ void SparcBFSFree(struct Backbone *backbone_info, int node_idx)
 		}
 
 		ConsensusEdgeNode *prev_edge_ptr = current_node->left;
-		while (prev_edge_ptr != NULL) {
+		while (prev_edge_ptr != NULL)
+		{
 			ConsensusEdgeNode *edge_ptr = prev_edge_ptr->nxt_edge;
 			free(prev_edge_ptr);
 			prev_edge_ptr = edge_ptr;
 		}
 		free(current_node);
-
 	}
 }
 
@@ -527,7 +540,6 @@ void SparcBFSClear(struct Backbone *backbone_info, int node_idx)
 
 			edge_ptr = edge_ptr->nxt_edge;
 		}
-
 	}
 }
 
@@ -545,9 +557,9 @@ void SparcClearInfo(struct Backbone *backbone_info)
 	cout << "Nodes information clear." << endl;
 }
 
+void SparcFreeInfo(struct Backbone *backbone_info)
+{
 
-void SparcFreeInfo(struct Backbone *backbone_info) {
-	
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
 
@@ -556,4 +568,3 @@ void SparcFreeInfo(struct Backbone *backbone_info) {
 
 	cout << "all resource freed." << endl;
 }
-

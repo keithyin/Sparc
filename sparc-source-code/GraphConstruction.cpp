@@ -35,9 +35,9 @@ void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *
 
 	int tot_bits = Read_arr_sz * 64;
 
-	cout << "ReadLen=" << readLen << endl;
-	cout << "OverlappingKmers=" << OverlappingKmers << endl;
-	cout << "Read_arr_sz=" << Read_arr_sz << endl;
+	// cout << "ReadLen=" << readLen << endl;
+	// cout << "OverlappingKmers=" << OverlappingKmers << endl;
+	// cout << "Read_arr_sz=" << Read_arr_sz << endl;
 
 	uint64_t seq;
 	// check the read to see if there is a saved kmer in the hashtable or bloom filter
@@ -811,7 +811,7 @@ void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_
 		}
 	}
 
-	string backbone_seg = backbone_info->backbone.substr(query_info->tStart, query_info->tEnd - query_info->tStart);
+	// string backbone_seg = backbone_info->backbone.substr(query_info->tStart, query_info->tEnd - query_info->tStart);
 	// cout << backbone_seg << endl;
 	// cout << target_seg << endl;
 	int target_position = query_info->tStart;
@@ -1064,4 +1064,3 @@ void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_
 		}
 	}
 }
-
