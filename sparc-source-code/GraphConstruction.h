@@ -15,14 +15,14 @@
 #include "BasicDataStructure.h"
 using namespace std;
 
-void Consensus_Kmer_Graph_Construction(struct RefRead *read, struct Backbone *backbone_info, int K_size);
+void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *backbone_info, int K_size);
 
 // 将 mismatch 拆成了两个 GAP
 // gap 右对齐
-void NormalizeAlignment(Query *query_info);
+void SparcNormalizeAlignment(Query *query_info);
 
-void PatchGaps(Query *query_info);
+void SparcPatchGaps(Query *query_info);
 
-void FillGaps(Query *query_info);
+void SparcFillGaps(Query *query_info);
 
-void Add_Path_To_Backbone(struct Backbone *backbone_info, struct Query *query_info, int K_size);
+void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_info, int K_size);

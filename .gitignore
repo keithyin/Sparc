@@ -1,7 +1,8 @@
 testdata/*
 Sparc
 main
-
+*.txt
+*.dot
 
 # Added by cargo
 

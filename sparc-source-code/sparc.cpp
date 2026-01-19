@@ -23,7 +23,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 {
 	std::string backbone = backbone_c;
 	bool HELP = 0;
-	int K_size = config->kmer;
+	int kmer = config->kmer;
 	int CovTh = config->converage_threshold;
 	int ScoringMethod = config->scoring_method;
 	int subgraph_begin = config->subgraph_begin;
@@ -33,18 +33,19 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	int report_begin = config->report_begin;
 	int report_end = config->report_end;
 	int boost = 1;
-	bool Debug = config->debug;
+	bool debug = config->debug;
 	string ContigPrefix;
 	bool Patch = 0, Fill = 0;
 	int Patch_K = 5;
 	int Patch_D = 30;
 	int Patch_G = 2;
-	double threshold = -0.1;
+	double threshold = 0.2;
 	string str;
 
-	std::cout << "BackboneSize=" << backbone.size() << std::endl;
-
-	Debug = 0;
+	if (debug)
+	{
+		std::cout << "BackboneSize=" << backbone.size() << std::endl;
+	}
 
 	RefRead ref;
 	ref.read_bits = (uint64_t *)malloc((size_t)(backbone.size() / 4) + 100);
@@ -65,27 +66,29 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	// cout << "constructing backbone graph." << endl;
 	struct Backbone backbone_info_org = backbone_info;
 
-	std::cout << "Consensus_Kmer_Graph_Construction" << std::endl;
-	Consensus_Kmer_Graph_Construction(&ref, &backbone_info_org, K_size);
-
-	// cout << "Nodes: " << backbone_info.n_nodes << " nodes." << endl;
-
-	// cout << "Edges: " << backbone_info.n_edges << " edges." << endl;
-	std::cout << "Backbone size: " << backbone_info.backbone.size() << std::endl;
+	SparcConsensusKmerGraphConstruction(&ref, &backbone_info_org, kmer);
 
 	ofstream o_profile;
-	if (Debug)
+	if (debug)
 	{
 		o_profile.open("align_profile.txt");
 	}
 
-	// cout << "adding query branches." << endl;
+	if (debug)
+	{
+		std::cout << "Nodes: " << backbone_info.n_nodes << " nodes." << std::endl;
 
-	std::cout << "Patch_K=" << Patch_K << std::endl;
-	std::cout << "Patch_D=" << Patch_D << std::endl;
-	std::cout << "Patch_G=" << Patch_G << std::endl;
-	std::cout << "Patch=" << Patch << std::endl;
-	std::cout << "Fill=" << Fill << std::endl;
+		std::cout << "Edges: " << backbone_info.n_edges << " edges." << std::endl;
+		std::cout << "BackboneSize: " << backbone_info.backbone.size() << std::endl;
+
+		std::cout << "Patch_K=" << Patch_K << std::endl;
+		std::cout << "Patch_D=" << Patch_D << std::endl;
+		std::cout << "Patch_G=" << Patch_G << std::endl;
+		std::cout << "Patch=" << Patch << std::endl;
+		std::cout << "Fill=" << Fill << std::endl;
+	}
+
+	// cout << "adding query branches." << endl;
 
 	size_t n_reads = 0;
 	backbone_info.ref_matched = 0;
@@ -113,12 +116,12 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		query_info->n_new = 0;
 		n_reads++;
 		query_info->read_idx = n_reads;
-		Add_Path_To_Backbone(&backbone_info_org, query_info, K_size);
+		SparcAddPathToBackbone(&backbone_info_org, query_info, kmer);
 	}
 
 	// cout << "done." << endl;;
 
-	if (Debug)
+	if (debug)
 	{
 		std::cout << "Nodes: " << backbone_info_org.n_nodes << "." << std::endl;
 		std::cout << "Edges: " << backbone_info_org.n_edges << "." << std::endl;
@@ -129,8 +132,12 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	map<int, int> cov_cnt;
 
 	backbone_info_org.cov_vec.resize(backbone_info_org.node_vec.size());
-	std::cout << "backbone.size=" << backbone.size() << std::endl;
-	std::cout << "backbone_info_org.node_vec.size=" << backbone_info_org.node_vec.size() << std::endl;
+	if (debug)
+	{
+
+		std::cout << "backbone.size=" << backbone.size() << std::endl;
+		std::cout << "backbone_info_org.node_vec.size=" << backbone_info_org.node_vec.size() << std::endl;
+	}
 
 	// 这个半径需要调整一下？ TODO
 	int radius = 200;
@@ -174,15 +181,12 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		}
 	}
 
-	FindBestPath(&backbone_info_org);
+	SparcFindBestPath(&backbone_info_org);
 	std::string filename = "subgraph.dot";
 
-	subgraph_begin = 0;
-	subgraph_end = backbone_info_org.node_vec.size();
-
-	if (subgraph_end > subgraph_begin)
+	if (subgraph_end > subgraph_begin && debug)
 	{
-		OutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
+		SparcOutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
 	}
 
 	std::string consensus;
@@ -214,14 +218,14 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	if (current_node != NULL)
 	{
 		uint64_t kmer_uint64 = (current_node->kmer);
-		bitsarr2str(&kmer_uint64, K_size, KmerStr, 1);
+		bitsarr2str(&kmer_uint64, kmer, KmerStr, 1);
 		consensus = KmerStr;
 		reverse(consensus.begin(), consensus.end());
 		current_node = current_node->last_node;
 		while (current_node != NULL)
 		{
 			kmer_uint64 = (current_node->kmer);
-			bitsarr2str(&kmer_uint64, K_size, KmerStr, 1);
+			bitsarr2str(&kmer_uint64, kmer, KmerStr, 1);
 
 			consensus.push_back(KmerStr[0]);
 			current_node = current_node->last_node;
@@ -230,7 +234,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		reverse(consensus.begin(), consensus.end());
 	}
 
-	if (Debug)
+	if (debug)
 	{
 		std::string OutputFilename2 = "DEBUG.consensus.fasta";
 		std::ofstream o_cns(OutputFilename2.c_str());
@@ -260,11 +264,11 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		backbone_info_org.node_vec[ii]->cns_coord = ii + 1;
 	}
 	filename = "subgraph_cns.dot";
-	if (cns_end > cns_begin)
+	if (cns_end > cns_begin && debug)
 	{
-		OutputSubGraph(&backbone_info_org, cns_begin, cns_end, filename);
+		SparcOutputSubGraph(&backbone_info_org, cns_begin, cns_end, filename);
 	}
-	if (Debug)
+	if (debug)
 	{
 		for (int i = 0; i < backbone_info_org.node_vec.size(); ++i)
 		{
@@ -281,11 +285,16 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 
 	std::cout << "Finished." << std::endl;
 
-	FreeInfo(&backbone_info_org);
+	SparcFreeInfo(&backbone_info_org);
 	free(ref.read_bits);
 
-	char *result = (char *)malloc(backbone.size() + 1);
-	strcpy(result, backbone.c_str());
+	char *result = (char *)malloc(consensus.size() + 1);
+	strcpy(result, consensus.c_str());
 
 	return result;
+}
+
+void SparcFreeConsensusResult(char *consensus)
+{
+	free(consensus);
 }

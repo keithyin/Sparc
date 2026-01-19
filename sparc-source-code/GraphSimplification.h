@@ -13,24 +13,24 @@
 #include "GraphConstruction.h"
 using namespace std;
 
-char kmer2base(uint32_t kmer);
+char SparcKmer2base(uint32_t kmer);
 
-void MergeNodes(struct Backbone *backbone_info);
+void SparcMergeNodes(struct Backbone *backbone_info);
 
-void OutputPathsFromANode(ConsensusNode *begin_node, string filename, map<ConsensusNode *, bool> &Visited);
+void SparcOutputPathsFromANode(ConsensusNode *begin_node, string filename, map<ConsensusNode *, bool> &Visited);
 
-void OutputSubGraph(struct Backbone *backbone_info, int begin, int end, string filename);
+void SparcOutputSubGraph(struct Backbone *backbone_info, int begin, int end, string filename);
 
-char *multiply(const char *a_in, const char *b_in, char *mul);
+char *SparcMultiply(const char *a_in, const char *b_in, char *mul);
 
-void BFSFindBestPath(struct Backbone *backbone_info, int node_idx);
+void SparcBFSFindBestPath(struct Backbone *backbone_info, int node_idx);
 
-void FindBestPath(struct Backbone *backbone_info);
+void SparcFindBestPath(struct Backbone *backbone_info);
 
-void BFSFree(struct Backbone *backbone_info, int node_idx);
+void SparcBFSFree(struct Backbone *backbone_info, int node_idx);
 
-void BFSClear(struct Backbone *backbone_info, int node_idx);
+void SparcBFSClear(struct Backbone *backbone_info, int node_idx);
 
-void ClearInfo(struct Backbone *backbone_info);
+void SparcClearInfo(struct Backbone *backbone_info);
 
-void FreeInfo(struct Backbone *backbone_info);
+void SparcFreeInfo(struct Backbone *backbone_info);

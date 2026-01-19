@@ -177,9 +177,74 @@ mod tests {
             };
             query.fill_c_query(c_query);
             c_queries.push(c_query);
+
+            let query = Query {
+                query_aligned_seq: "GCTCGGCCCAA".to_string(),
+                target_aligned_seq: "GATCGGGCTAA".to_string(),
+                rev_strand: false,
+                query_start: 0,
+                query_end: 11,
+                target_start: 0,
+                target_end: 11,
+            };
+            query.fill_c_query(c_query);
+            c_queries.push(c_query);
+
+            let query = Query {
+                query_aligned_seq: "GCTCGGCCCAA".to_string(),
+                target_aligned_seq: "GATCGGGCTAA".to_string(),
+                rev_strand: false,
+                query_start: 0,
+                query_end: 11,
+                target_start: 0,
+                target_end: 11,
+            };
+            query.fill_c_query(c_query);
+            c_queries.push(c_query);
+
+            let query = Query {
+                query_aligned_seq: "GCTCGGCCCAA".to_string(),
+                target_aligned_seq: "GATCGGGCTAA".to_string(),
+                rev_strand: false,
+                query_start: 0,
+                query_end: 11,
+                target_start: 0,
+                target_end: 11,
+            };
+            query.fill_c_query(c_query);
+            c_queries.push(c_query);
+
+            let query = Query {
+                query_aligned_seq: "GATCGCGCCAA".to_string(),
+                target_aligned_seq: "GATCGGGCTAA".to_string(),
+                rev_strand: false,
+                query_start: 0,
+                query_end: 11,
+                target_start: 0,
+                target_end: 11,
+            };
+            query.fill_c_query(c_query);
+            c_queries.push(c_query);
+
+            let query = Query {
+                query_aligned_seq: "GATCGCGCCAA".to_string(),
+                target_aligned_seq: "GATCGGGCTAA".to_string(),
+                rev_strand: false,
+                query_start: 0,
+                query_end: 11,
+                target_start: 0,
+                target_end: 11,
+            };
+            query.fill_c_query(c_query);
+            c_queries.push(c_query);
+
         }
 
-        let config = SparcConfig::default();
+        let mut config = SparcConfig::default();
+        config.debug = true;
+        config.report_end = backbone_str.as_bytes().len() as c_int;
+        config.subgraph_end = backbone_str.as_bytes().len() as c_int;
+        config.cns_end = backbone_str.as_bytes().len() as c_int;
         unsafe {
             let c_str = SparcConsensus(
                 backbone_str.as_ptr(),

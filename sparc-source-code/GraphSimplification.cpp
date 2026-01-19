@@ -14,7 +14,7 @@
 #include "GraphSimplification.h"
 using namespace std;
 
-char kmer2base(uint32_t kmer)
+char SparcKmer2base(uint32_t kmer)
 {
 	if (kmer == 0)
 	{
@@ -38,7 +38,7 @@ char kmer2base(uint32_t kmer)
 	return 'N';
 }
 
-void MergeNodes(struct Backbone *backbone_info)
+void SparcMergeNodes(struct Backbone *backbone_info)
 {
 	// break the bubble links in the bfs.
 	ofstream o_debug("debug_merge.txt");
@@ -118,7 +118,7 @@ void MergeNodes(struct Backbone *backbone_info)
 	cout << n_replacements << " replacements." << endl;
 }
 
-void OutputPathsFromANode(ConsensusNode *begin_node, string filename, map<ConsensusNode *, bool> &Visited)
+void SparcOutputPathsFromANode(ConsensusNode *begin_node, string filename, map<ConsensusNode *, bool> &Visited)
 {
 
 	ofstream o_graph(filename.c_str(), ios_base::app);
@@ -152,19 +152,19 @@ void OutputPathsFromANode(ConsensusNode *begin_node, string filename, map<Consen
 				}
 				if (edge_ptr->node_ptr->coord > 0)
 				{
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << kmer2base(edge_ptr->node_ptr->kmer) << "(" << edge_ptr->node_ptr->coord << ")"
+					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "(" << edge_ptr->node_ptr->coord << ")"
 																																										  "\"];"
 							<< endl;
 				}
 				else
 				{
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << kmer2base(edge_ptr->node_ptr->kmer) << "\"];" << endl;
+					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [color=red,label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "\"];" << endl;
 				}
 			}
 			else
 			{
 
-				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [label=\"" << kmer2base(edge_ptr->node_ptr->kmer) << "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]"
+				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]"
 																																																		   "\"];"
 						<< endl;
 			}
@@ -176,12 +176,12 @@ void OutputPathsFromANode(ConsensusNode *begin_node, string filename, map<Consen
 	o_graph.close();
 }
 
-void OutputSubGraph(struct Backbone *backbone_info, int begin, int end, string filename)
+void SparcOutputSubGraph(struct Backbone *backbone_info, int begin, int end, string filename)
 {
 
 	ofstream o_graph(filename.c_str());
 	o_graph << "digraph G {" << endl;
-	o_graph << "\"" << backbone_info->node_vec[begin] << "\"" << " [label=\"" << kmer2base(backbone_info->node_vec[begin]->kmer) << "(" << backbone_info->node_vec[begin]->coord << ")"
+	o_graph << "\"" << backbone_info->node_vec[begin] << "\"" << " [label=\"" << SparcKmer2base(backbone_info->node_vec[begin]->kmer) << "(" << backbone_info->node_vec[begin]->coord << ")"
 																																													"\"];"
 			<< endl;
 
@@ -190,7 +190,7 @@ void OutputSubGraph(struct Backbone *backbone_info, int begin, int end, string f
 	map<ConsensusNode *, bool> Visited;
 	for (int i = begin; i + 1 < end; ++i)
 	{
-		OutputPathsFromANode(backbone_info->node_vec[i], filename, Visited);
+		SparcOutputPathsFromANode(backbone_info->node_vec[i], filename, Visited);
 	}
 
 	o_graph.open(filename.c_str(), ios_base::app);
@@ -199,7 +199,7 @@ void OutputSubGraph(struct Backbone *backbone_info, int begin, int end, string f
 	o_graph.clear();
 }
 
-char *multiply(const char *a_in, const char *b_in, char *mul)
+char *SparcMultiply(const char *a_in, const char *b_in, char *mul)
 {
 	char c[500], a[500], b[500];
 	strcpy(a, a_in);
@@ -265,7 +265,7 @@ char *multiply(const char *a_in, const char *b_in, char *mul)
 	return mul;
 }
 
-void BFSFindBestPath(struct Backbone *backbone_info, int node_idx)
+void SparcBFSFindBestPath(struct Backbone *backbone_info, int node_idx)
 {
 	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
 	list<ConsensusNode *> node_list;
@@ -307,8 +307,8 @@ void BFSFindBestPath(struct Backbone *backbone_info, int node_idx)
 				degree_str2 = itoa_str4.str();
 				char score_org_str[600], score_new_str[600];
 
-				multiply(score_str1.c_str(), degree_str2.c_str(), score_org_str);
-				multiply(score_str2.c_str(), degree_str1.c_str(), score_new_str);
+				SparcMultiply(score_str1.c_str(), degree_str2.c_str(), score_org_str);
+				SparcMultiply(score_str2.c_str(), degree_str1.c_str(), score_new_str);
 
 				if (edge_ptr->node_ptr->score == 0)
 				{
@@ -395,7 +395,7 @@ void BFSFindBestPath(struct Backbone *backbone_info, int node_idx)
 	}
 }
 
-void FindBestPath(struct Backbone *backbone_info)
+void SparcFindBestPath(struct Backbone *backbone_info)
 {
 
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
@@ -403,7 +403,7 @@ void FindBestPath(struct Backbone *backbone_info)
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
 
-		BFSFindBestPath(backbone_info, i);
+		SparcBFSFindBestPath(backbone_info, i);
 
 		// cout << i << " ";
 		ConsensusEdgeNode *edge_ptr = backbone_info->node_vec[i]->right;
@@ -468,7 +468,7 @@ void FindBestPath(struct Backbone *backbone_info)
 	// cout << n_Rbranched << " right branches." << endl;
 }
 
-void BFSFree(struct Backbone *backbone_info, int node_idx)
+void SparcBFSFree(struct Backbone *backbone_info, int node_idx)
 {
 	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
 	list<ConsensusNode *> node_list;
@@ -504,7 +504,7 @@ void BFSFree(struct Backbone *backbone_info, int node_idx)
 	}
 }
 
-void BFSClear(struct Backbone *backbone_info, int node_idx)
+void SparcBFSClear(struct Backbone *backbone_info, int node_idx)
 {
 	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
 	list<ConsensusNode *> node_list;
@@ -531,7 +531,7 @@ void BFSClear(struct Backbone *backbone_info, int node_idx)
 	}
 }
 
-void ClearInfo(struct Backbone *backbone_info)
+void SparcClearInfo(struct Backbone *backbone_info)
 {
 
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
@@ -539,19 +539,19 @@ void ClearInfo(struct Backbone *backbone_info)
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
 
-		BFSClear(backbone_info, i);
+		SparcBFSClear(backbone_info, i);
 	}
 
 	cout << "Nodes information clear." << endl;
 }
 
 
-void FreeInfo(struct Backbone *backbone_info) {
+void SparcFreeInfo(struct Backbone *backbone_info) {
 	
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
 
-		BFSFree(backbone_info, i);
+		SparcBFSFree(backbone_info, i);
 	}
 
 	cout << "all resource freed." << endl;

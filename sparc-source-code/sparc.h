@@ -21,4 +21,6 @@ struct SparcConfig
 extern "C"
 {
     char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConfig *config);
+
+    void SparcFreeConsensusResult(char *consensus);
 }

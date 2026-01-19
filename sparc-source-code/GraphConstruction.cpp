@@ -14,7 +14,7 @@
 #include "BasicDataStructure.h"
 using namespace std;
 
-void Consensus_Kmer_Graph_Construction(struct RefRead *read, struct Backbone *backbone_info, int K_size)
+void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *backbone_info, int K_size)
 {
 	int readLen = read->readLen;
 	int OverlappingKmers = readLen - K_size + 1;
@@ -77,7 +77,7 @@ void Consensus_Kmer_Graph_Construction(struct RefRead *read, struct Backbone *ba
 
 // 将 mismatch 拆成了两个 GAP
 // gap 右对齐
-void NormalizeAlignment(Query *query_info)
+void SparcNormalizeAlignment(Query *query_info)
 {
 	cout << "query_info->tAlignedSeq=" << query_info->tAlignedSeq << endl;
 	cout << "query_info->qAlignedSeq=" << query_info->qAlignedSeq << endl;
@@ -200,7 +200,7 @@ void NormalizeAlignment(Query *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void PatchGaps(Query *query_info)
+void SparcPatchGaps(Query *query_info)
 {
 	bool Align = 1;
 	string qAlignedSeq_new, tAlignedSeq_new;
@@ -493,7 +493,7 @@ void PatchGaps(Query *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void FillGaps(Query *query_info)
+void SparcFillGaps(Query *query_info)
 {
 	bool Align = 1;
 	string qAlignedSeq_new, tAlignedSeq_new;
@@ -729,7 +729,7 @@ void FillGaps(Query *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void Add_Path_To_Backbone(struct Backbone *backbone_info, struct Query *query_info, int K_size)
+void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_info, int K_size)
 {
 	cout << "Add_Path_To_Backbone" << endl;
 	ofstream o_report_align;
@@ -753,16 +753,16 @@ void Add_Path_To_Backbone(struct Backbone *backbone_info, struct Query *query_in
 		reverse(query_info->matchPattern.begin(), query_info->matchPattern.end());
 	}
 
-	NormalizeAlignment(query_info);
+	SparcNormalizeAlignment(query_info);
 	if (query_info->Patch)
 	{
-		PatchGaps(query_info);
+		SparcPatchGaps(query_info);
 	}
 	else
 	{
 		if (query_info->Fill)
 		{
-			FillGaps(query_info);
+			SparcFillGaps(query_info);
 		}
 	}
 	//		FillGaps(query_info);

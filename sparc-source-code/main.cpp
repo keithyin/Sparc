@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
 	if (gap == 1)
 	{
 		cout << "Consensus_Kmer_Graph_Construction" << endl;
-		Consensus_Kmer_Graph_Construction(&ref, &backbone_info_org, K_size);
+		SparcConsensusKmerGraphConstruction(&ref, &backbone_info_org, K_size);
 	}
 
 	// cout << "Nodes: " << backbone_info.n_nodes << " nodes." << endl;
@@ -267,6 +267,8 @@ int main(int argc, char *argv[])
 
 	// cout << "adding query branches." << endl;
 
+	cout << "threshold=" << threshold << std::endl;
+	std::cout << "CovTh=" << CovTh << std::endl;
 	cout << "Patch_K=" << Patch_K << endl;
 	cout << "Patch_D=" << Patch_D << endl;
 	cout << "Patch_G=" << Patch_G << endl;
@@ -306,7 +308,7 @@ int main(int argc, char *argv[])
 		query_info_org = query_info;
 		if (gap == 1)
 		{
-			Add_Path_To_Backbone(&backbone_info_org, &query_info_org, K_size);
+			SparcAddPathToBackbone(&backbone_info_org, &query_info_org, K_size);
 		}
 	}
 
@@ -326,10 +328,10 @@ int main(int argc, char *argv[])
 		backbone_info_org.cov_vec.resize(backbone_info_org.node_vec.size());
 		cout << "backbone.size=" << backbone.size() << endl;
 		cout << "backbone_info_org.node_vec.size=" << backbone_info_org.node_vec.size() << endl;
-		
+
 		// 这个半径需要调整一下？ TODO
 		int radius = 200;
-		
+
 		if (radius > backbone.size())
 		{
 			radius = backbone.size() - 1;
@@ -352,7 +354,6 @@ int main(int argc, char *argv[])
 				{
 					// 会删除一些 coverage
 					cov_cnt.erase(backbone_info_org.node_vec[i - radius]->cov);
-					
 				}
 			}
 			if (i + radius < backbone_info_org.node_vec.size())
@@ -370,7 +371,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		FindBestPath(&backbone_info_org);
+		SparcFindBestPath(&backbone_info_org);
 		string filename = "subgraph.dot";
 
 		subgraph_begin = 0;
@@ -378,7 +379,7 @@ int main(int argc, char *argv[])
 
 		if (subgraph_end > subgraph_begin)
 		{
-			OutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
+			SparcOutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
 		}
 	}
 
@@ -462,7 +463,7 @@ int main(int argc, char *argv[])
 		string filename = "subgraph_cns.dot";
 		if (cns_end > cns_begin)
 		{
-			OutputSubGraph(&backbone_info_org, cns_begin, cns_end, filename);
+			SparcOutputSubGraph(&backbone_info_org, cns_begin, cns_end, filename);
 		}
 		if (Debug)
 		{
@@ -506,7 +507,7 @@ int main(int argc, char *argv[])
 	cout << "Finished." << endl;
 
 	// ClearInfo(&backbone_info_org);
-	FreeInfo(&backbone_info_org);
+	SparcFreeInfo(&backbone_info_org);
 	free(ref.read_bits);
 
 	/*
