@@ -63,13 +63,13 @@ void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *
 			previous_node->right = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
 			memset(previous_node->right, 0, sizeof(ConsensusEdgeNode));
 			previous_node->right->node_ptr = current_node;
-			// previous_node->right->edge_cov++;
+			previous_node->right->edge_cov++;
 			previous_node->coord = j - 1;
 			backbone_info->n_edges++;
 			current_node->left = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
 			memset(current_node->left, 0, sizeof(ConsensusEdgeNode));
 			current_node->left->node_ptr = previous_node;
-			// current_node->left->edge_cov++;
+			current_node->left->edge_cov++;
 			backbone_info->n_edges++;
 		}
 	}
@@ -887,7 +887,7 @@ void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_
 			query_info->n_exist++;
 			current_node = backbone_info->node_vec[MatchPosition];
 
-			if (previous_node != NULL) // TODO: 为啥要判断 previous_node != NULL ????
+			if (current_node != NULL) // TODO: 为啥要判断 previous_node != NULL ????
 			{
 				current_node->cov++;
 			}
