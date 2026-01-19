@@ -150,29 +150,23 @@ void SparcOutputPathsFromANode(ConsensusNode *begin_node, string filename, map<C
 					Visited[edge_ptr->node_ptr] = 1;
 					node_list.push_back(edge_ptr->node_ptr);
 				}
-				if (edge_ptr->node_ptr->coord > 0)
-				{
-					std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\""
-							<< SparcKmer2base(edge_ptr->node_ptr->kmer)
-							<< "(" << edge_ptr->node_ptr->coord << ")"
-							<< "\"];"
-							<< endl;
-				}
-				else
-				{
-					std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
 
-					o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer) << "<" << edge_ptr->node_ptr->cov << ">" << "\"];" << endl;
-				}
+				std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
+				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\""
+						<< SparcKmer2base(edge_ptr->node_ptr->kmer)
+						<< "[" << edge_ptr->node_ptr->coord << "]"
+						<< "[" << edge_ptr->node_ptr->cov << "]"
+						<< "\"];"
+						<< endl;
 			}
 			else
 			{
 				std::string color = edge_ptr->node_ptr->selected ? "color=red," : "";
 
 				o_graph << "\"" << edge_ptr->node_ptr << "\"" << " [" << color << "label=\"" << SparcKmer2base(edge_ptr->node_ptr->kmer)
-						<< "[" << edge_ptr->node_ptr->cns_coord << "]" << "[" << edge_ptr->node_ptr->coord << "]"
-						<< "<" << edge_ptr->node_ptr->cov << ">"
+						<< "[" << edge_ptr->node_ptr->coord << "]"
+						<< "[" << edge_ptr->node_ptr->cov << "]"
+						<< ":B"
 						<< "\"];"
 						<< endl;
 			}
@@ -190,12 +184,14 @@ void SparcOutputSubGraph(struct Backbone *backbone_info, int begin, int end, str
 	ofstream o_graph(filename.c_str());
 	o_graph << "digraph G {" << endl;
 	std::string color = backbone_info->node_vec[begin]->selected ? "color=red," : "";
+
 	o_graph << "\"" << backbone_info->node_vec[begin]
 			<< "\"" << " [" << color << "label=\""
 			<< SparcKmer2base(backbone_info->node_vec[begin]->kmer)
-			<< "(" << backbone_info->node_vec[begin]->coord << ")"
-			<< "<" << backbone_info->node_vec[begin]->cov << ">"
-															 "\"];"
+			<< "[" << backbone_info->node_vec[begin]->coord << "]"
+			<< "[" << backbone_info->node_vec[begin]->cov << "]"
+			<< ":B"
+			<< "\"];"
 			<< endl;
 
 	o_graph.close();
@@ -391,7 +387,7 @@ void SparcBFSFindBestPath(struct Backbone *backbone_info, int node_idx)
 			//
 			if (update)
 			{
-				edge_ptr->node_ptr->cov = current_node->cov + 1;
+				// edge_ptr->node_ptr->cov = current_node->cov + 1;
 				// edge_ptr->node_ptr->score = (current_node->score + max(edge_ptr->edge_cov - backbone_info->CovTh,-2));
 
 				edge_ptr->node_ptr->score = new_score;
@@ -412,7 +408,7 @@ void SparcFindBestPath(struct Backbone *backbone_info)
 {
 
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
-	backbone_info->node_vec[0]->cov = 1; // depth
+	// backbone_info->node_vec[0]->cov = 1; // depth
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
 

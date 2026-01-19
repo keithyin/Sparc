@@ -203,7 +203,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 			max_score = backbone_info_org.node_vec[i]->score;
 			position = i;
 		}
-		backbone_info_org.node_vec[i]->in_backbone = 0;
+		// backbone_info_org.node_vec[i]->in_backbone = 0;
 	}
 
 	if (max_score == 0)
@@ -246,8 +246,8 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 
 	int cns_pos = consensus.size();
 	current_node = backbone_info_org.node_vec[position];
-	backbone_info_org.node_vec.clear();
-	backbone_info_org.node_vec.push_back(current_node);
+	// backbone_info_org.node_vec.clear();
+	// backbone_info_org.node_vec.push_back(current_node);
 	if (current_node != NULL)
 	{
 		current_node->selected = true;
@@ -255,18 +255,18 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		while (current_node != NULL)
 		{
 			current_node->selected = true;
-			backbone_info_org.node_vec.push_back(current_node);
+			// backbone_info_org.node_vec.push_back(current_node);
 			cns_pos--;
 			current_node = current_node->last_node;
 		}
 	}
-	reverse(backbone_info_org.node_vec.begin(), backbone_info_org.node_vec.end());
+	// reverse(backbone_info_org.node_vec.begin(), backbone_info_org.node_vec.end());
 
-	for (int ii = 0; ii < backbone_info_org.node_vec.size(); ++ii)
-	{
-		backbone_info_org.node_vec[ii]->in_backbone = 1;
-		backbone_info_org.node_vec[ii]->cns_coord = ii + 1;
-	}
+	// for (int ii = 0; ii < backbone_info_org.node_vec.size(); ++ii)
+	// {
+	// 	backbone_info_org.node_vec[ii]->in_backbone = 1;
+	// 	backbone_info_org.node_vec[ii]->cns_coord = ii + 1;
+	// }
 
 	filename = "subgraph_cns.dot";
 	if (subgraph_end > subgraph_begin && debug)
