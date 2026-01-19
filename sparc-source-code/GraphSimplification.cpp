@@ -1,5 +1,3 @@
-#ifndef __GRAPH_SIMPLIFICATION_H
-#define __GRAPH_SIMPLIFICATION_H
 #include <iostream>
 #include <string>
 #include <string.h>
@@ -9,9 +7,11 @@
 #include <list>
 #include <algorithm>
 #include <fstream>
+#include <cmath>
 #include "time.h"
 #include "BasicDataStructure.h"
 #include "GraphConstruction.h"
+#include "GraphSimplification.h"
 using namespace std;
 
 char kmer2base(uint32_t kmer)
@@ -38,7 +38,7 @@ char kmer2base(uint32_t kmer)
 	return 'N';
 }
 
-void MergeNodes(struct backbone_info *backbone_info)
+void MergeNodes(struct Backbone *backbone_info)
 {
 	// break the bubble links in the bfs.
 	ofstream o_debug("debug_merge.txt");
@@ -46,9 +46,9 @@ void MergeNodes(struct backbone_info *backbone_info)
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
 		// cout << i << " ";
-		consensus_edge_node *edge_ptr = backbone_info->node_vec[i]->right;
-		map<uint32_t, consensus_node *> node_map;
-		map<consensus_node *, int> node_cov;
+		ConsensusEdgeNode *edge_ptr = backbone_info->node_vec[i]->right;
+		map<uint32_t, ConsensusNode *> node_map;
+		map<ConsensusNode *, int> node_cov;
 		uint32_t kmer = edge_ptr->node_ptr->kmer;
 		int backbone_edge_cov = backbone_info->node_vec[i]->right->edge_cov;
 		// edge_ptr = edge_ptr->nxt_edge;
@@ -75,7 +75,7 @@ void MergeNodes(struct backbone_info *backbone_info)
 
 		edge_ptr = backbone_info->node_vec[i]->right;
 
-		map<consensus_node *, int>::iterator it;
+		map<ConsensusNode *, int>::iterator it;
 
 		for (it = node_cov.begin(); it != node_cov.end(); ++it)
 		{
@@ -118,13 +118,13 @@ void MergeNodes(struct backbone_info *backbone_info)
 	cout << n_replacements << " replacements." << endl;
 }
 
-void OutputPathsFromANode(consensus_node *begin_node, string filename, map<consensus_node *, bool> &Visited)
+void OutputPathsFromANode(ConsensusNode *begin_node, string filename, map<ConsensusNode *, bool> &Visited)
 {
 
 	ofstream o_graph(filename.c_str(), ios_base::app);
-	map<uint64_t, consensus_node *> node_map;
+	map<uint64_t, ConsensusNode *> node_map;
 
-	list<consensus_node *> node_list;
+	list<ConsensusNode *> node_list;
 	node_list.push_back(begin_node);
 	if (begin_node->coord == 14240)
 	{
@@ -133,9 +133,9 @@ void OutputPathsFromANode(consensus_node *begin_node, string filename, map<conse
 	// o_graph << "\"" << begin_node << "\"" << " [label=\"" << begin_node->kmer.kmer << "(" << begin_node->coord << ")" "\"];" << endl;
 	while (node_list.size() > 0)
 	{
-		consensus_node *current_node = node_list.front();
+		ConsensusNode *current_node = node_list.front();
 		node_list.pop_front();
-		consensus_edge_node *edge_ptr = current_node->right;
+		ConsensusEdgeNode *edge_ptr = current_node->right;
 		while (edge_ptr != NULL)
 		{
 
@@ -176,7 +176,7 @@ void OutputPathsFromANode(consensus_node *begin_node, string filename, map<conse
 	o_graph.close();
 }
 
-void OutputSubGraph(struct backbone_info *backbone_info, int begin, int end, string filename)
+void OutputSubGraph(struct Backbone *backbone_info, int begin, int end, string filename)
 {
 
 	ofstream o_graph(filename.c_str());
@@ -187,7 +187,7 @@ void OutputSubGraph(struct backbone_info *backbone_info, int begin, int end, str
 
 	o_graph.close();
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
-	map<consensus_node *, bool> Visited;
+	map<ConsensusNode *, bool> Visited;
 	for (int i = begin; i + 1 < end; ++i)
 	{
 		OutputPathsFromANode(backbone_info->node_vec[i], filename, Visited);
@@ -265,10 +265,10 @@ char *multiply(const char *a_in, const char *b_in, char *mul)
 	return mul;
 }
 
-void BFSFindBestPath(struct backbone_info *backbone_info, int node_idx)
+void BFSFindBestPath(struct Backbone *backbone_info, int node_idx)
 {
-	consensus_node *begin_node = backbone_info->node_vec[node_idx];
-	list<consensus_node *> node_list;
+	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
+	list<ConsensusNode *> node_list;
 	node_list.push_back(begin_node);
 	int max_cov = backbone_info->cov_vec[node_idx];
 	if (node_idx == 511)
@@ -277,9 +277,9 @@ void BFSFindBestPath(struct backbone_info *backbone_info, int node_idx)
 	}
 	while (node_list.size() > 0)
 	{
-		consensus_node *current_node = node_list.front();
+		ConsensusNode *current_node = node_list.front();
 		node_list.pop_front();
-		consensus_edge_node *edge_ptr = current_node->right;
+		ConsensusEdgeNode *edge_ptr = current_node->right;
 		while (edge_ptr != NULL)
 		{
 			// if (edge_ptr->node_ptr->score < (current_node->score + edge_ptr->edge_cov))
@@ -395,7 +395,7 @@ void BFSFindBestPath(struct backbone_info *backbone_info, int node_idx)
 	}
 }
 
-void FindBestPath(struct backbone_info *backbone_info)
+void FindBestPath(struct Backbone *backbone_info)
 {
 
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
@@ -406,9 +406,9 @@ void FindBestPath(struct backbone_info *backbone_info)
 		BFSFindBestPath(backbone_info, i);
 
 		// cout << i << " ";
-		consensus_edge_node *edge_ptr = backbone_info->node_vec[i]->right;
-		map<uint64_t, consensus_node *> node_map;
-		map<consensus_node *, int> node_cov;
+		ConsensusEdgeNode *edge_ptr = backbone_info->node_vec[i]->right;
+		map<uint64_t, ConsensusNode *> node_map;
+		map<ConsensusNode *, int> node_cov;
 		int RBranch = 0;
 		while (edge_ptr != NULL)
 		{
@@ -468,17 +468,17 @@ void FindBestPath(struct backbone_info *backbone_info)
 	// cout << n_Rbranched << " right branches." << endl;
 }
 
-void BFSFree(struct backbone_info *backbone_info, int node_idx)
+void BFSFree(struct Backbone *backbone_info, int node_idx)
 {
-	consensus_node *begin_node = backbone_info->node_vec[node_idx];
-	list<consensus_node *> node_list;
+	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
+	list<ConsensusNode *> node_list;
 	node_list.push_back(begin_node);
 	
 	while (node_list.size() > 0)
 	{
-		consensus_node *current_node = node_list.front();
+		ConsensusNode *current_node = node_list.front();
 		node_list.pop_front();
-		consensus_edge_node *edge_ptr = current_node->right;
+		ConsensusEdgeNode *edge_ptr = current_node->right;
 		while (edge_ptr != NULL)
 		{
 			edge_ptr->node_ptr->coord = 0;
@@ -487,15 +487,15 @@ void BFSFree(struct backbone_info *backbone_info, int node_idx)
 			{
 				node_list.push_back(edge_ptr->node_ptr);
 			}
-			consensus_edge_node *nxt_edge_ptr = edge_ptr->nxt_edge;
+			ConsensusEdgeNode *nxt_edge_ptr = edge_ptr->nxt_edge;
 			free(edge_ptr);
 
 			edge_ptr = nxt_edge_ptr;
 		}
 
-		consensus_edge_node *prev_edge_ptr = current_node->left;
+		ConsensusEdgeNode *prev_edge_ptr = current_node->left;
 		while (prev_edge_ptr != NULL) {
-			consensus_edge_node *edge_ptr = prev_edge_ptr->nxt_edge;
+			ConsensusEdgeNode *edge_ptr = prev_edge_ptr->nxt_edge;
 			free(prev_edge_ptr);
 			prev_edge_ptr = edge_ptr;
 		}
@@ -504,18 +504,18 @@ void BFSFree(struct backbone_info *backbone_info, int node_idx)
 	}
 }
 
-void BFSClear(struct backbone_info *backbone_info, int node_idx)
+void BFSClear(struct Backbone *backbone_info, int node_idx)
 {
-	consensus_node *begin_node = backbone_info->node_vec[node_idx];
-	list<consensus_node *> node_list;
+	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
+	list<ConsensusNode *> node_list;
 	node_list.push_back(begin_node);
 	begin_node->in_backbone = 0;
 	begin_node->coord = 0;
 	while (node_list.size() > 0)
 	{
-		consensus_node *current_node = node_list.front();
+		ConsensusNode *current_node = node_list.front();
 		node_list.pop_front();
-		consensus_edge_node *edge_ptr = current_node->right;
+		ConsensusEdgeNode *edge_ptr = current_node->right;
 		while (edge_ptr != NULL)
 		{
 			edge_ptr->node_ptr->coord = 0;
@@ -531,7 +531,7 @@ void BFSClear(struct backbone_info *backbone_info, int node_idx)
 	}
 }
 
-void ClearInfo(struct backbone_info *backbone_info)
+void ClearInfo(struct Backbone *backbone_info)
 {
 
 	uint32_t n_Rbranched = 0, n_Lbranched = 0;
@@ -546,7 +546,7 @@ void ClearInfo(struct backbone_info *backbone_info)
 }
 
 
-void FreeInfo(struct backbone_info *backbone_info) {
+void FreeInfo(struct Backbone *backbone_info) {
 	
 	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
 	{
@@ -557,4 +557,3 @@ void FreeInfo(struct backbone_info *backbone_info) {
 	cout << "all resource freed." << endl;
 }
 
-#endif

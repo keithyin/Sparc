@@ -223,19 +223,19 @@ int main(int argc, char *argv[])
 
 	Debug = 0;
 
-	align_profile backbone_align_profile;
+	AlignProfile backbone_align_profile;
 	backbone_align_profile.match_vec.resize(backbone.size());
 	backbone_align_profile.mismatch_vec.resize(backbone.size());
 	backbone_align_profile.insertion_vec.resize(backbone.size());
 	backbone_align_profile.deletion_vec.resize(backbone.size());
 
-	ref_read_t ref;
+	RefRead ref;
 	ref.read_bits = (uint64_t *)malloc((size_t)(backbone.size() / 4) + 100);
 	ref.alloc_sz = (size_t)(backbone.size() / 4 + 100);
 	Init_Ref_Read(backbone, ref);
 
 	int64_t bucket_count = 0, edge_cnt = 0;
-	struct backbone_info backbone_info;
+	struct Backbone backbone_info;
 	backbone_info.threshold = threshold;
 	backbone_info.gap = gap;
 	backbone_info.ContigPrefix = ContigPrefix;
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
 	backbone_info.n_nodes = 0;
 	backbone_info.CovTh = CovTh;
 	// cout << "constructing backbone graph." << endl;
-	struct backbone_info backbone_info_org = backbone_info;
+	struct Backbone backbone_info_org = backbone_info;
 
 	if (gap == 1)
 	{
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 	backbone_info.ref_mismatch = 0;
 	backbone_info_org.ref_matched = 0;
 	backbone_info_org.ref_mismatch = 0;
-	struct query_info query_info, query_info_org;
+	struct Query query_info, query_info_org;
 	query_info.Patch = Patch;
 	query_info.Fill = Fill;
 	query_info.Patch_K = Patch_K;
@@ -408,7 +408,7 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 
-		consensus_node *current_node = backbone_info_org.node_vec[position];
+		ConsensusNode *current_node = backbone_info_org.node_vec[position];
 
 		char KmerStr[100];
 		if (current_node != NULL)

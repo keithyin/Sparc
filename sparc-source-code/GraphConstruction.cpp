@@ -1,5 +1,3 @@
-#ifndef __GRAPH_CONSTRUCTION_H
-#define __GRAPH_CONSTRUCTION_H
 
 #include <iostream>
 #include <string>
@@ -16,7 +14,7 @@
 #include "BasicDataStructure.h"
 using namespace std;
 
-void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_info *backbone_info, int K_size)
+void Consensus_Kmer_Graph_Construction(struct RefRead *read, struct Backbone *backbone_info, int K_size)
 {
 	int readLen = read->readLen;
 	int OverlappingKmers = readLen - K_size + 1;
@@ -43,7 +41,7 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 
 	uint64_t seq;
 	// check the read to see if there is a saved kmer in the hashtable or bloom filter
-	consensus_node *previous_node = NULL, *current_node = NULL;
+	ConsensusNode *previous_node = NULL, *current_node = NULL;
 	backbone_info->node_vec.resize(OverlappingKmers);
 
 	for (int j = 0; j < OverlappingKmers; j++)
@@ -52,9 +50,9 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 		previous_node = current_node;
 		get_sub_arr(read->read_bits, read->readLen, j, K_size, &seq);
 
-		current_node = (consensus_node *)malloc(sizeof(consensus_node));
+		current_node = (ConsensusNode *)malloc(sizeof(ConsensusNode));
 		backbone_info->node_vec[j] = current_node;
-		memset(current_node, 0, sizeof(consensus_node));
+		memset(current_node, 0, sizeof(ConsensusNode));
 		memcpy(&(current_node->kmer), &seq, sizeof(uint64_t));
 		current_node->in_backbone = 1;
 		current_node->cov++;
@@ -62,14 +60,14 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 		if (j >= 1)
 		{
 			// left edge,right edge
-			previous_node->right = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
-			memset(previous_node->right, 0, sizeof(consensus_edge_node));
+			previous_node->right = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
+			memset(previous_node->right, 0, sizeof(ConsensusEdgeNode));
 			previous_node->right->node_ptr = current_node;
 			// previous_node->right->edge_cov++;
 			previous_node->coord = j - 1;
 			backbone_info->n_edges++;
-			current_node->left = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
-			memset(current_node->left, 0, sizeof(consensus_edge_node));
+			current_node->left = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
+			memset(current_node->left, 0, sizeof(ConsensusEdgeNode));
 			current_node->left->node_ptr = previous_node;
 			// current_node->left->edge_cov++;
 			backbone_info->n_edges++;
@@ -79,7 +77,7 @@ void Consensus_Kmer_Graph_Construction(struct ref_read_t *read, struct backbone_
 
 // 将 mismatch 拆成了两个 GAP
 // gap 右对齐
-void NormalizeAlignment(query_info *query_info)
+void NormalizeAlignment(Query *query_info)
 {
 	cout << "query_info->tAlignedSeq=" << query_info->tAlignedSeq << endl;
 	cout << "query_info->qAlignedSeq=" << query_info->qAlignedSeq << endl;
@@ -202,7 +200,7 @@ void NormalizeAlignment(query_info *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void PatchGaps(query_info *query_info)
+void PatchGaps(Query *query_info)
 {
 	bool Align = 1;
 	string qAlignedSeq_new, tAlignedSeq_new;
@@ -495,7 +493,7 @@ void PatchGaps(query_info *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void FillGaps(query_info *query_info)
+void FillGaps(Query *query_info)
 {
 	bool Align = 1;
 	string qAlignedSeq_new, tAlignedSeq_new;
@@ -731,7 +729,7 @@ void FillGaps(query_info *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info *query_info, int K_size)
+void Add_Path_To_Backbone(struct Backbone *backbone_info, struct Query *query_info, int K_size)
 {
 	cout << "Add_Path_To_Backbone" << endl;
 	ofstream o_report_align;
@@ -817,7 +815,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 	// cout << backbone_seg << endl;
 	// cout << target_seg << endl;
 	int target_position = query_info->tStart;
-	consensus_node *previous_node = NULL, *current_node = NULL;
+	ConsensusNode *previous_node = NULL, *current_node = NULL;
 	int MatchPosition = -100, PreviousMatchPosition = -100;
 
 	// 开始构图
@@ -899,7 +897,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 			if (previous_node != NULL)
 			{
 
-				consensus_edge_node **edge_p2p = &(previous_node->right);
+				ConsensusEdgeNode **edge_p2p = &(previous_node->right);
 
 				while (*edge_p2p != NULL)
 				{
@@ -923,8 +921,8 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 				if (*edge_p2p == NULL)
 				{
 
-					(*edge_p2p) = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
-					memset((*edge_p2p), 0, sizeof(consensus_edge_node));
+					(*edge_p2p) = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
+					memset((*edge_p2p), 0, sizeof(ConsensusEdgeNode));
 					(*edge_p2p)->nxt_edge = NULL;
 					(*edge_p2p)->node_ptr = current_node;
 					(*edge_p2p)->edge_cov++;
@@ -952,8 +950,8 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 				}
 				if (*edge_p2p == NULL)
 				{
-					(*edge_p2p) = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
-					memset((*edge_p2p), 0, sizeof(consensus_edge_node));
+					(*edge_p2p) = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
+					memset((*edge_p2p), 0, sizeof(ConsensusEdgeNode));
 					(*edge_p2p)->nxt_edge = NULL;
 					(*edge_p2p)->node_ptr = previous_node;
 					(*edge_p2p)->edge_cov++;
@@ -972,8 +970,8 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 
 			if (previous_node == NULL)
 			{
-				current_node = (consensus_node *)malloc(sizeof(consensus_node));
-				memset(current_node, 0, sizeof(consensus_node));
+				current_node = (ConsensusNode *)malloc(sizeof(ConsensusNode));
+				memset(current_node, 0, sizeof(ConsensusNode));
 
 				current_node->kmer = (uint32_t)seq;
 				current_node->cov++;
@@ -985,7 +983,7 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 			else
 			{
 
-				consensus_edge_node **edge_p2p = &(previous_node->right);
+				ConsensusEdgeNode **edge_p2p = &(previous_node->right);
 				while (*edge_p2p != NULL)
 				{
 					// 还不明白为什么会有 in_backbone == 0 的判断。
@@ -1007,12 +1005,12 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 
 				if (*edge_p2p == NULL) // 创建一个边指向新的 kmer
 				{
-					(*edge_p2p) = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
-					memset((*edge_p2p), 0, sizeof(consensus_edge_node));
+					(*edge_p2p) = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
+					memset((*edge_p2p), 0, sizeof(ConsensusEdgeNode));
 					(*edge_p2p)->nxt_edge = NULL;
-					current_node = (consensus_node *)malloc(sizeof(consensus_node));
+					current_node = (ConsensusNode *)malloc(sizeof(ConsensusNode));
 					query_info->n_new++;
-					memset(current_node, 0, sizeof(consensus_node));
+					memset(current_node, 0, sizeof(ConsensusNode));
 					current_node->kmer = (uint32_t)seq;
 					current_node->cov++;
 					(*edge_p2p)->node_ptr = current_node;
@@ -1044,8 +1042,8 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 				}
 				if (*edge_p2p == NULL) // 创建一个边指向来时路
 				{
-					(*edge_p2p) = (consensus_edge_node *)malloc(sizeof(consensus_edge_node));
-					memset((*edge_p2p), 0, sizeof(consensus_edge_node));
+					(*edge_p2p) = (ConsensusEdgeNode *)malloc(sizeof(ConsensusEdgeNode));
+					memset((*edge_p2p), 0, sizeof(ConsensusEdgeNode));
 					(*edge_p2p)->nxt_edge = NULL;
 					(*edge_p2p)->node_ptr = previous_node;
 					(*edge_p2p)->edge_cov++;
@@ -1067,4 +1065,3 @@ void Add_Path_To_Backbone(struct backbone_info *backbone_info, struct query_info
 	}
 }
 
-#endif

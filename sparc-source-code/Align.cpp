@@ -1,8 +1,4 @@
 
-#ifndef __ALIGN_H
-#define __ALIGN_H
-
-
 #include <iostream>
 #include <string>
 #include <string.h>
@@ -12,22 +8,14 @@
 #include <list>
 #include <algorithm>
 #include <fstream>
+#include "Align.h"
 #include "time.h"
 using namespace std;
 
-
-
-struct aln_t
-{
-	const static int MaxLen = 301;
-	int score[MaxLen][MaxLen];
-	uint8_t b[MaxLen][MaxLen];
-	int insertions, deletions, substitutions;
-};
-void str2int(char *s, int * out)
+void str2int(char *s, int *out)
 {
 	int str_sz = strlen(s);
-	for (int i = 0; i<str_sz; ++i)
+	for (int i = 0; i < str_sz; ++i)
 	{
 		char temp = s[i];
 		switch (temp)
@@ -61,15 +49,14 @@ void str2int(char *s, int * out)
 			return;
 		}
 	}
-
 }
 
 int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, int gap_cost, int band_width)
 {
 	int A_sz = strlen(A), B_sz = strlen(B);
 	int Ai[500], Bi[500];
-	memset(aln_t->score, 0, sizeof(int)*(aln_t->MaxLen*aln_t->MaxLen));
-	memset(aln_t->b, 0, sizeof(uint8_t)*(aln_t->MaxLen*aln_t->MaxLen));
+	memset(aln_t->score, 0, sizeof(int) * (aln_t->MaxLen * aln_t->MaxLen));
+	memset(aln_t->b, 0, sizeof(uint8_t) * (aln_t->MaxLen * aln_t->MaxLen));
 
 	str2int(A, Ai);
 	str2int(B, Bi);
@@ -78,7 +65,7 @@ int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, 
 
 		int idA = Ai[i - 1];
 		int upper_bound, lower_bound;
-		if (B_sz>A_sz)
+		if (B_sz > A_sz)
 		{
 			upper_bound = min(B_sz - A_sz + i + band_width, B_sz);
 			lower_bound = max(1, i - band_width);
@@ -101,19 +88,18 @@ int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, 
 
 			int idB = Bi[j - 1];
 			int Sij = -1000000, Sij_max = -1000000, from = 0;
-			if (j<=upper_bound)
+			if (j <= upper_bound)
 			{
 
 				Sij = aln_t->score[i - 1][j] + gap_cost;
 				Sij_max = Sij;
 				from = 1;
-
 			}
 
-			if (j>=lower_bound)
+			if (j >= lower_bound)
 			{
 				Sij = aln_t->score[i][j - 1] + gap_cost;
-				if (Sij>Sij_max)
+				if (Sij > Sij_max)
 				{
 					Sij_max = Sij;
 					from = 2;
@@ -127,7 +113,7 @@ int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, 
 			{
 				Sij = aln_t->score[i - 1][j - 1] + mismatch;
 			}
-			if (Sij>Sij_max)
+			if (Sij > Sij_max)
 			{
 				Sij_max = Sij;
 				from = 3;
@@ -135,10 +121,7 @@ int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, 
 
 			aln_t->score[i][j] = Sij_max;
 			aln_t->b[i][j] = from;
-
 		}
-
-
 	}
 
 	/*
@@ -163,19 +146,16 @@ int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, 
 	o_path<<endl;
 	}
 	*/
-	
+
 	int max_score = -1000000;
 	for (int i = B_sz; i >= 0; --i)
 	{
-		if ((aln_t->score[A_sz][i])>max_score)
+		if ((aln_t->score[A_sz][i]) > max_score)
 		{
 			max_score = aln_t->score[A_sz][i];
 		}
 	}
-	return max_score;//aln_t->score[A_sz][B_sz];
-
-
-
+	return max_score; // aln_t->score[A_sz][B_sz];
 }
 
 void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_aln)
@@ -202,7 +182,6 @@ void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_
 
 	int position = 0;
 
-
 	max_score = aln_t->score[A_sz][B_sz];
 
 	while (1)
@@ -214,7 +193,7 @@ void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_
 
 			for (int k = j; k >= 1; --k)
 			{
-				
+
 				A_aln[position] = '-';
 				B_aln[position] = B[k - 1];
 				position++;
@@ -223,13 +202,12 @@ void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_
 			break;
 		}
 
-
 		if (j == 0)
 		{
-			//the head of B is missing here
+			// the head of B is missing here
 			for (int k = i; k >= 1; --k)
 			{
-				aln_t->insertions++;//A has more bases 
+				aln_t->insertions++; // A has more bases
 				A_aln[position] = A[k - 1];
 				B_aln[position] = '-';
 				position++;
@@ -246,23 +224,24 @@ void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_
 			{
 				aln_t->substitutions++;
 			}
-			i--; j--;
+			i--;
+			j--;
 			continue;
 		}
 		if (aln_t->b[i][j] == 2)
 		{
-			
-			aln_t->deletions++;//A is missing a base			
+
+			aln_t->deletions++; // A is missing a base
 			A_aln[position] = '-';
 			B_aln[position] = B[j - 1];
 			position++;
-			
+
 			j--;
 			continue;
 		}
 		if (aln_t->b[i][j] == 1)
 		{
-			aln_t->insertions++;//A has one more base
+			aln_t->insertions++; // A has one more base
 			A_aln[position] = A[i - 1];
 			B_aln[position] = '-';
 			position++;
@@ -277,6 +256,3 @@ void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_
 	reverse(A_aln.begin(), A_aln.end());
 	reverse(B_aln.begin(), B_aln.end());
 }
-
-
-#endif
