@@ -23,4 +23,4 @@ void str2int(char *s, int *out);
 
 int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, int gap_cost, int band_width);
 
-void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_aln);
+void PrintAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_aln);

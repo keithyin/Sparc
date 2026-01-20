@@ -144,12 +144,12 @@ struct ConsensusEdgeNode
 	struct ConsensusEdgeNode *nxt_edge;
 };
 
-struct sparse_consensus_edge_node
+struct SparseConsensusEdgeNode
 {
 	uint32_t edge;
 	int32_t edge_cov : 24, len : 8;
-	struct sparse_consensus_node *node_ptr;
-	struct sparse_consensus_edge_node *nxt_edge;
+	struct SparseConsensusNode *node_ptr;
+	struct SparseConsensusEdgeNode *nxt_edge;
 };
 
 struct ConsensusNode
@@ -165,22 +165,22 @@ struct ConsensusNode
 	ConsensusNode *last_node;
 };
 
-struct sparse_consensus_node
+struct SparseConsensusNode
 {
 	uint32_t kmer;
 	int64_t score;
 	uint32_t coord;
 	uint32_t cns_coord;
 	uint32_t cov : 28, used : 1, in_backbone : 1, in_cns_backbone : 1;
-	sparse_consensus_edge_node *left;
-	sparse_consensus_edge_node *right;
-	sparse_consensus_node *last_node;
+	SparseConsensusEdgeNode *left;
+	SparseConsensusEdgeNode *right;
+	SparseConsensusNode *last_node;
 };
 
 struct Backbone
 {
 	vector<ConsensusNode *> node_vec;
-	vector<sparse_consensus_node *> sparse_node_vec;
+	vector<SparseConsensusNode *> sparse_node_vec;
 	vector<uint64_t> cov_vec;
 	vector<uint64_t> cnt_vec;
 	string backbone;
@@ -217,7 +217,7 @@ struct reads_table
 
 // contig graph
 
-struct contigs_info
+struct Contigs
 {
 	int total_contigs;
 	int K_size;

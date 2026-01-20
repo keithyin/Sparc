@@ -347,7 +347,7 @@ void SparcPatchGaps(Query *query_info)
 				strcpy(qry_char, query_crop.c_str());
 
 				score = GlobalAlign(&aln_t, qry_char, ref_char, match, mismatch, gap_cost, band_width);
-				printAlign(&aln_t, qry_char, ref_char, A_aln, B_aln);
+				PrintAlign(&aln_t, qry_char, ref_char, A_aln, B_aln);
 
 				bool Debug = 0;
 
@@ -608,7 +608,7 @@ void SparcFillGaps(Query *query_info)
 		strcpy(qry_char, query_crop.c_str());
 
 		score = GlobalAlign(&aln_t, qry_char, ref_char, match, mismatch, gap_cost, band_width);
-		printAlign(&aln_t, qry_char, ref_char, Query_aln, Target_aln);
+		PrintAlign(&aln_t, qry_char, ref_char, Query_aln, Target_aln);
 
 		bool Debug = 0;
 		if (Debug)

@@ -158,7 +158,7 @@ int GlobalAlign(struct aln_t *aln_t, char *A, char *B, int match, int mismatch, 
 	return max_score; // aln_t->score[A_sz][B_sz];
 }
 
-void printAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_aln)
+void PrintAlign(struct aln_t *aln_t, char *A, char *B, string &A_aln, string &B_aln)
 {
 	A_aln.clear();
 	B_aln.clear();

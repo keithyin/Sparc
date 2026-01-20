@@ -196,6 +196,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	uint64_t max_score = 0;
 	size_t position = 0;
 
+	// 这里只是遍历了 backbone 上的最大分。但是也有可能最大分不在 backbone上？
 	for (int i = 0; i < backbone_info_org.node_vec.size(); ++i)
 	{
 		if (backbone_info_org.node_vec[i]->score > max_score)
@@ -244,7 +245,6 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		o_cns << consensus << endl;
 	}
 
-	int cns_pos = consensus.size();
 	current_node = backbone_info_org.node_vec[position];
 	// backbone_info_org.node_vec.clear();
 	// backbone_info_org.node_vec.push_back(current_node);
@@ -256,7 +256,6 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		{
 			current_node->selected = true;
 			// backbone_info_org.node_vec.push_back(current_node);
-			cns_pos--;
 			current_node = current_node->last_node;
 		}
 	}
