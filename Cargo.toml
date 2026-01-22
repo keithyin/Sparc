@@ -2,5 +2,18 @@
 name = "sparc"
 version = "0.1.0"
 edition = "2024"
+description = "sparc rust binding"
+license = "MIT"
+repository = "https://github.com/keithyin/Sparc"
+exclude = [
+    ".vscode/*",
+    "target/*",
+    "testdata/*",
+    "testdata2/*",
+    "utility/*",
+    "*.txt",
+    "*.dot",
+    "DEBUG.consensus.fasta",
+]
 
 [dependencies]
