@@ -63,6 +63,7 @@ impl Drop for SparcConsensusResult {
     }
 }
 
+#[allow(unused)]
 unsafe extern "C" {
 
     unsafe fn SparcConsensus(
@@ -125,6 +126,7 @@ unsafe extern "C" {
 
 }
 
+#[allow(unused)]
 pub struct Query {
     query_aligned_seq: String,
     target_aligned_seq: String,
@@ -136,7 +138,7 @@ pub struct Query {
 }
 
 impl Query {
-    pub fn fill_c_query(&self, c_query: *mut CQuery) {
+    fn fill_c_query(&self, c_query: *mut CQuery) {
         unsafe {
             let query_aligned_seq = CString::new(self.query_aligned_seq.as_bytes()).unwrap();
             QuerySetQueryAlignedSeq(c_query, query_aligned_seq.as_c_str().as_ptr());
