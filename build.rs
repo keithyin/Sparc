@@ -38,7 +38,7 @@ fn main() {
     /* ---------- 6. 告诉 Rust 去哪里 link ---------- */
     println!(
         "cargo:rustc-link-search=native={}",
-        build_out_path.display()
+        build_src.display()
     );
     println!("cargo:rustc-link-lib=static=sparc");
 

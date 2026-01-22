@@ -7,7 +7,6 @@ license = "MIT"
 repository = "https://github.com/keithyin/Sparc"
 exclude = [
     ".vscode/*",
-    "target/*",
     "testdata/*",
     "testdata2/*",
     "utility/*",
