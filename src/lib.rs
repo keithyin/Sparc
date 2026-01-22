@@ -138,6 +138,23 @@ pub struct Query {
 }
 
 impl Query {
+    pub fn new(
+        target_aligned: String,
+        query_aligned: String,
+        target_start: usize,
+        target_end: usize,
+    ) -> Self {
+        Self {
+            query_aligned_seq: query_aligned,
+            target_aligned_seq: target_aligned,
+            rev_strand: false,
+            query_start: 0,
+            query_end: 0,
+            target_start,
+            target_end,
+        }
+    }
+
     fn fill_c_query(&self, c_query: *mut CQuery) {
         unsafe {
             let query_aligned_seq = CString::new(self.query_aligned_seq.as_bytes()).unwrap();
