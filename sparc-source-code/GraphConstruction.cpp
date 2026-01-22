@@ -77,10 +77,13 @@ void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *
 
 // 将 mismatch 拆成了两个 GAP
 // gap 右对齐
-void SparcNormalizeAlignment(Query *query_info)
+void SparcNormalizeAlignment(Query *query_info, bool debug = false)
 {
-	cout << "query_info->tAlignedSeq=" << query_info->tAlignedSeq << endl;
-	cout << "query_info->qAlignedSeq=" << query_info->qAlignedSeq << endl;
+	if (debug)
+	{
+		cout << "query_info->tAlignedSeq=" << query_info->tAlignedSeq << endl;
+		cout << "query_info->qAlignedSeq=" << query_info->qAlignedSeq << endl;
+	}
 
 	string qAlignedSeq_new, tAlignedSeq_new;
 	size_t seq_sz = query_info->qAlignedSeq.size();
@@ -192,9 +195,11 @@ void SparcNormalizeAlignment(Query *query_info)
 	}
 	qAlignedSeq_new.resize(n_char);
 	tAlignedSeq_new.resize(n_char);
-
-	cout << "tAlignedSeq_new        =" << tAlignedSeq_new << endl;
-	cout << "qAlignedSeq_new        =" << qAlignedSeq_new << endl;
+	if (debug)
+	{
+		cout << "tAlignedSeq_new        =" << tAlignedSeq_new << endl;
+		cout << "qAlignedSeq_new        =" << qAlignedSeq_new << endl;
+	}
 
 	query_info->qAlignedSeq = qAlignedSeq_new;
 	query_info->tAlignedSeq = tAlignedSeq_new;
@@ -729,13 +734,19 @@ void SparcFillGaps(Query *query_info)
 	query_info->tAlignedSeq = tAlignedSeq_new;
 }
 
-void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_info, int K_size)
+void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_info, int K_size, bool debug)
 {
-	cout << "Add_Path_To_Backbone" << endl;
+	if (debug)
+	{
+		cout << "Add_Path_To_Backbone" << endl;
+	}
 	ofstream o_report_align;
 	bool boost_edges = 0;
 	string ContigPrefix = backbone_info->ContigPrefix;
-	cout << "ContigPrefix=" << ContigPrefix << endl;
+	if (debug)
+	{
+		cout << "ContigPrefix=" << ContigPrefix << endl;
+	}
 	if (ContigPrefix.size() > 0)
 	{
 		if (query_info->qName.substr(0, ContigPrefix.size()) == ContigPrefix)
@@ -743,8 +754,10 @@ void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_
 			boost_edges = 1;
 		}
 	}
-	bool DEBUG = 1;
-	cout << "query_info->tStrand=" << query_info->tStrand << endl;
+	if (debug)
+	{
+		cout << "query_info->tStrand=" << query_info->tStrand << endl;
+	}
 
 	if (query_info->tStrand == '-')
 	{
@@ -819,7 +832,10 @@ void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_
 	int MatchPosition = -100, PreviousMatchPosition = -100;
 
 	// 开始构图
-	cout << "Start Build Graph" << endl;
+	if (debug)
+	{
+		cout << "Start Build Graph" << endl;
+	}
 
 	for (int i = 0; i + K_size <= query_info->qAlignedSeq.size(); ++i)
 	{

@@ -15,12 +15,17 @@ struct SparcConfig
     int cns_end;
     int report_begin;
     int report_end;
+    int cov_radius;
+};
+
+struct SparcConsensusResult {
+    char* seq;
 };
 
 // std::string SparcConsensus();
 extern "C"
 {
-    char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConfig *config);
+    SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConfig *config);
 
     void SparcFreeConsensusResult(char *consensus);
 }

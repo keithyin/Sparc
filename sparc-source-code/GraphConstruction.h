@@ -19,10 +19,10 @@ void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *
 
 // 将 mismatch 拆成了两个 GAP
 // gap 右对齐
-void SparcNormalizeAlignment(Query *query_info);
+void SparcNormalizeAlignment(Query *query_info, bool debug = false);
 
 void SparcPatchGaps(Query *query_info);
 
 void SparcFillGaps(Query *query_info);
 
-void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_info, int K_size);
+void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_info, int K_size, bool debug = false);

@@ -562,5 +562,4 @@ void SparcFreeInfo(struct Backbone *backbone_info)
 		SparcBFSFree(backbone_info, i);
 	}
 
-	cout << "all resource freed." << endl;
 }

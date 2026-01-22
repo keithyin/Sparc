@@ -19,7 +19,7 @@
 #include "GraphSimplification.h"
 #include "sparc.h"
 
-char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConfig *config)
+SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConfig *config)
 {
 	std::string backbone = backbone_c;
 	bool HELP = 0;
@@ -104,11 +104,6 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	query_info.report_b = report_begin;
 	query_info.report_e = report_end;
 
-	if (report_end > report_begin)
-	{
-		std::ofstream o_report_align("subalign.txt");
-	}
-
 	for (int i = 0; i < n_queries; i++)
 	{
 		Query *query_info = *(queries + i);
@@ -116,7 +111,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		query_info->n_new = 0;
 		n_reads++;
 		query_info->read_idx = n_reads;
-		SparcAddPathToBackbone(&backbone_info_org, query_info, kmer);
+		SparcAddPathToBackbone(&backbone_info_org, query_info, kmer, debug);
 	}
 
 	// cout << "done." << endl;;
@@ -140,7 +135,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	}
 
 	// 这个半径需要调整一下？ TODO
-	int radius = 200;
+	int radius = config->cov_radius;
 
 	if (radius > backbone.size())
 	{
@@ -184,10 +179,11 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	}
 
 	SparcFindBestPath(&backbone_info_org);
-	std::string filename = "subgraph.dot";
 
 	if (subgraph_end > subgraph_begin && debug)
 	{
+		std::string filename = "subgraph.dot";
+
 		SparcOutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
 	}
 
@@ -204,15 +200,17 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 			max_score = backbone_info_org.node_vec[i]->score;
 			position = i;
 		}
-		// backbone_info_org.node_vec[i]->in_backbone = 0;
 	}
 
 	if (max_score == 0)
 	{
 		char *result = (char *)malloc(backbone.size() + 1);
 		strcpy(result, backbone.c_str());
-		std::cout << "Empty ouput. Backbone copied." << std::endl;
-		return result;
+		if (debug)
+		{
+			std::cout << "Empty ouput. Backbone copied." << std::endl;
+		}
+		return SparcConsensusResult{result};
 	}
 
 	ConsensusNode *current_node = backbone_info_org.node_vec[position];
@@ -243,37 +241,26 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		std::ofstream o_cns(OutputFilename2.c_str());
 		o_cns << ">Debug" << endl;
 		o_cns << consensus << endl;
-	}
 
-	current_node = backbone_info_org.node_vec[position];
-	// backbone_info_org.node_vec.clear();
-	// backbone_info_org.node_vec.push_back(current_node);
-	if (current_node != NULL)
-	{
-		current_node->selected = true;
-		current_node = current_node->last_node;
-		while (current_node != NULL)
+		current_node = backbone_info_org.node_vec[position];
+
+		if (current_node != NULL)
 		{
 			current_node->selected = true;
-			// backbone_info_org.node_vec.push_back(current_node);
 			current_node = current_node->last_node;
+			while (current_node != NULL)
+			{
+				current_node->selected = true;
+				current_node = current_node->last_node;
+			}
 		}
-	}
-	// reverse(backbone_info_org.node_vec.begin(), backbone_info_org.node_vec.end());
 
-	// for (int ii = 0; ii < backbone_info_org.node_vec.size(); ++ii)
-	// {
-	// 	backbone_info_org.node_vec[ii]->in_backbone = 1;
-	// 	backbone_info_org.node_vec[ii]->cns_coord = ii + 1;
-	// }
+		std::string filename = "subgraph_cns.dot";
+		if (subgraph_end > subgraph_begin && debug)
+		{
+			SparcOutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
+		}
 
-	filename = "subgraph_cns.dot";
-	if (subgraph_end > subgraph_begin && debug)
-	{
-		SparcOutputSubGraph(&backbone_info_org, subgraph_begin, subgraph_end, filename);
-	}
-	if (debug)
-	{
 		for (int i = 0; i < backbone_info_org.node_vec.size(); ++i)
 		{
 
@@ -287,7 +274,10 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 		}
 	}
 
-	std::cout << "Finished." << std::endl;
+	if (debug)
+	{
+		std::cout << "Finished." << std::endl;
+	}
 
 	SparcFreeInfo(&backbone_info_org);
 	free(ref.read_bits);
@@ -295,7 +285,7 @@ char *SparcConsensus(char *backbone_c, Query **queries, int n_queries, SparcConf
 	char *result = (char *)malloc(consensus.size() + 1);
 	strcpy(result, consensus.c_str());
 
-	return result;
+	return SparcConsensusResult{result};
 }
 
 void SparcFreeConsensusResult(char *consensus)
