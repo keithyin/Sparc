@@ -42,6 +42,8 @@ impl Default for SparcConfig {
 #[repr(C)]
 pub struct SparcConsensusResult {
     seq: *mut u8,
+    start_pos: c_int,
+    end_pos: c_int,
 }
 
 impl SparcConsensusResult {

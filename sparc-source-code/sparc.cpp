@@ -190,7 +190,7 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 	std::string consensus;
 
 	uint64_t max_score = 0;
-	size_t position = 0;
+	size_t end_position_inclusive = 0;
 
 	// 这里只是遍历了 backbone 上的最大分。但是也有可能最大分不在 backbone上？
 	for (int i = 0; i < backbone_info_org.node_vec.size(); ++i)
@@ -198,7 +198,7 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 		if (backbone_info_org.node_vec[i]->score > max_score)
 		{
 			max_score = backbone_info_org.node_vec[i]->score;
-			position = i;
+			end_position_inclusive = i;
 		}
 	}
 
@@ -213,9 +213,11 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 		return SparcConsensusResult{result};
 	}
 
-	ConsensusNode *current_node = backbone_info_org.node_vec[position];
+	ConsensusNode *current_node = backbone_info_org.node_vec[end_position_inclusive];
 
 	char KmerStr[100];
+	ConsensusNode *start_node = nullptr;
+	int start_position = -1;
 	if (current_node != NULL)
 	{
 		uint64_t kmer_uint64 = (current_node->kmer);
@@ -229,10 +231,25 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 			bitsarr2str(&kmer_uint64, kmer, KmerStr, 1);
 
 			consensus.push_back(KmerStr[0]);
+			if (current_node->last_node == nullptr)
+			{
+				start_node = current_node;
+			}
 			current_node = current_node->last_node;
 		}
-
 		reverse(consensus.begin(), consensus.end());
+
+		if (start_node != nullptr)
+		{
+			for (int i = 0; i < backbone_info_org.node_vec.size(); i++)
+			{
+				if (backbone_info_org.node_vec[i] == start_node)
+				{
+					start_position = i;
+					break;
+				}
+			}
+		}
 	}
 
 	if (debug)
@@ -242,7 +259,7 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 		o_cns << ">Debug" << endl;
 		o_cns << consensus << endl;
 
-		current_node = backbone_info_org.node_vec[position];
+		current_node = backbone_info_org.node_vec[end_position_inclusive];
 
 		if (current_node != NULL)
 		{
@@ -285,7 +302,7 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 	char *result = (char *)malloc(consensus.size() + 1);
 	strcpy(result, consensus.c_str());
 
-	return SparcConsensusResult{result};
+	return SparcConsensusResult{result, start_position, int(end_position_inclusive) + 1};
 }
 
 void SparcFreeConsensusResult(char *consensus)

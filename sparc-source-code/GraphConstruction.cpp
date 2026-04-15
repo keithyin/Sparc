@@ -14,6 +14,7 @@
 #include "BasicDataStructure.h"
 using namespace std;
 
+// 构建双向链表
 void SparcConsensusKmerGraphConstruction(struct RefRead *read, struct Backbone *backbone_info, int K_size)
 {
 	int readLen = read->readLen;

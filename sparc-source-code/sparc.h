@@ -20,6 +20,8 @@ struct SparcConfig
 
 struct SparcConsensusResult {
     char* seq;
+    int start_pos;
+    int end_pos; // exclusive
 };
 
 // std::string SparcConsensus();
