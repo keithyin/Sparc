@@ -198,7 +198,14 @@ impl Drop for SparcQuery {
     }
 }
 
-pub fn sparc_consensus(backbone: &str, queries: &[Query], config: &SparcConfig) -> String {
+/// sparc_consensus
+/// return: (cons_seq, start_in_backbone, end_in_backbone)
+/// [start_in_backbone, end_in_backbone)
+pub fn sparc_consensus(
+    backbone: &str,
+    queries: &[Query],
+    config: &SparcConfig,
+) -> (String, i32, i32) {
     let queries = queries
         .iter()
         .map(|v| v.into())
@@ -218,7 +225,8 @@ pub fn sparc_consensus(backbone: &str, queries: &[Query], config: &SparcConfig) 
         )
     };
 
-    result.into_string()
+    let cons_seq = result.into_string();
+    (cons_seq, result.start_pos, result.end_pos)
 }
 
 #[cfg(test)]
@@ -303,6 +311,6 @@ mod tests {
         ];
 
         let seq = sparc_consensus(backbone, &queries, &config);
-        println!("consensus_seq:{seq}");
+        println!("consensus_seq:{seq:?}");
     }
 }
