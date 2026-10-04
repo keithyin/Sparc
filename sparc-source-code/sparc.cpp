@@ -204,6 +204,9 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 
 	if (max_score == 0)
 	{
+		SparcFreeInfo(&backbone_info_org);
+		free(ref.read_bits);
+
 		char *result = (char *)malloc(backbone.size() + 1);
 		strcpy(result, backbone.c_str());
 		if (debug)

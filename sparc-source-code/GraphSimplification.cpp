@@ -556,7 +556,7 @@ void SparcClearInfo(struct Backbone *backbone_info)
 void SparcFreeInfo(struct Backbone *backbone_info)
 {
 
-	for (int i = 0; i + 1 < backbone_info->node_vec.size(); ++i)
+	for (int i = 0; i < (int)backbone_info->node_vec.size(); ++i)
 	{
 
 		SparcBFSFree(backbone_info, i);

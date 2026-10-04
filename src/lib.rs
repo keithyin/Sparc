@@ -181,11 +181,19 @@ struct SparcQuery {
 
 impl From<&Query> for SparcQuery {
     fn from(value: &Query) -> Self {
-        let c_query = unsafe {
-            let c_query = NewQuery();
-            value.fill_c_query(c_query);
-            c_query
-        };
+        // fill_c_query 在序列含内嵌 NUL 时会 panic，此时 guard 保证已创建的
+        // C++ Query 仍被释放；成功路径 forget 掉 guard，交由 SparcQuery 的 Drop 管理
+        struct FreeOnPanic(*mut CQuery);
+        impl Drop for FreeOnPanic {
+            fn drop(&mut self) {
+                unsafe { FreeQuery(self.0) };
+            }
+        }
+
+        let c_query = unsafe { NewQuery() };
+        let guard = FreeOnPanic(c_query);
+        value.fill_c_query(c_query);
+        std::mem::forget(guard);
         Self { c_query }
     }
 }
@@ -234,83 +242,96 @@ mod tests {
 
     use super::*;
 
+    fn make_config(backbone_len: usize) -> SparcConfig {
+        let mut config = SparcConfig::default();
+        config.debug = false;
+        config.report_end = backbone_len as c_int;
+        config.subgraph_end = backbone_len as c_int;
+        config.cns_end = backbone_len as c_int;
+        config
+    }
+
+    fn make_queries(backbone: &str) -> Vec<Query> {
+        let q = |query_aligned_seq: &str| Query {
+            query_aligned_seq: query_aligned_seq.to_string(),
+            target_aligned_seq: backbone.to_string(),
+            rev_strand: false,
+            query_start: 0,
+            query_end: query_aligned_seq.len(),
+            target_start: 0,
+            target_end: backbone.len(),
+        };
+        vec![
+            q("GATCGCGCTAA"),
+            q("GATCGCGCCAA"),
+            q("GCTCGGCCCAA"),
+            q("GCTCGGCCCAA"),
+            q("GCTCGGCCCAA"),
+            q("GATCGCGCCAA"),
+            q("GATCGCGCCAA"),
+        ]
+    }
+
     #[test]
     fn test_sparc_consensus() {
         let backbone = "GATCGGGCTAA";
-
-        let mut config = SparcConfig::default();
-        config.debug = false;
-        config.report_end = backbone.as_bytes().len() as c_int;
-        config.subgraph_end = backbone.as_bytes().len() as c_int;
-        config.cns_end = backbone.as_bytes().len() as c_int;
-
-        let queries = vec![
-            Query {
-                query_aligned_seq: "GATCGCGCTAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-            Query {
-                query_aligned_seq: "GATCGCGCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-            Query {
-                query_aligned_seq: "GCTCGGCCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-            Query {
-                query_aligned_seq: "GCTCGGCCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-            Query {
-                query_aligned_seq: "GCTCGGCCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-            Query {
-                query_aligned_seq: "GATCGCGCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-            Query {
-                query_aligned_seq: "GATCGCGCCAA".to_string(),
-                target_aligned_seq: "GATCGGGCTAA".to_string(),
-                rev_strand: false,
-                query_start: 0,
-                query_end: 11,
-                target_start: 0,
-                target_end: 11,
-            },
-        ];
+        let config = make_config(backbone.len());
+        let queries = make_queries(backbone);
 
         let seq = sparc_consensus(backbone, &queries, &config);
         println!("consensus_seq:{seq:?}");
+    }
+
+    /// 回归：max_score == 0 的早退路径必须先释放 k-mer 图和 ref.read_bits。
+    /// 此前该路径在 SparcFreeInfo/free 之前 return，空 queries 即可触发整体泄漏。
+    #[test]
+    fn test_empty_queries_returns_backbone() {
+        let backbone = "GATCGGGCTAA";
+        let config = make_config(backbone.len());
+
+        let (seq, start, end) = sparc_consensus(backbone, &[], &config);
+        assert_eq!(seq, backbone);
+        assert_eq!((start, end), (0, 0));
+    }
+
+    /// 回归：SparcFreeInfo 须覆盖最后一个 backbone 节点（每次调用都会走到该路径），
+    /// 同时验证跨调用的 FFI 配对（NewQuery/FreeQuery、malloc/free）不累积泄漏。
+    #[test]
+    fn test_sparc_consensus_repeated() {
+        let backbone = "GATCGGGCTAA";
+        let config = make_config(backbone.len());
+        let queries = make_queries(backbone);
+
+        for _ in 0..50 {
+            let (seq, start, end) = sparc_consensus(backbone, &queries, &config);
+            assert!(!seq.is_empty());
+            assert!(start < end);
+        }
+    }
+
+    /// 回归：3' 端插入使非 backbone 节点挂在最后一个 backbone 节点上，
+    /// SparcFreeInfo 现在会释放该子树；若释放逻辑存在双重释放会直接 abort。
+    #[test]
+    fn test_consensus_with_terminal_insertion() {
+        let backbone = "GATCGGGCTAA";
+        let config = make_config(backbone.len());
+        let mut queries = make_queries(backbone);
+
+        // tAligned 末尾为 '-'，即在 backbone 末端插入一个碱基
+        let ins = |query_aligned_seq: &str| Query {
+            query_aligned_seq: query_aligned_seq.to_string(),
+            target_aligned_seq: format!("{backbone}-"),
+            rev_strand: false,
+            query_start: 0,
+            query_end: query_aligned_seq.len(),
+            target_start: 0,
+            target_end: backbone.len(),
+        };
+        queries.push(ins("GATCGGGCTAAA"));
+        queries.push(ins("GATCGGGCTAAG"));
+
+        let (seq, start, end) = sparc_consensus(backbone, &queries, &config);
+        assert!(!seq.is_empty());
+        assert!(start < end);
     }
 }
