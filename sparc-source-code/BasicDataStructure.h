@@ -180,6 +180,10 @@ struct SparseConsensusNode
 struct Backbone
 {
 	vector<ConsensusNode *> node_vec;
+	// 比对起始处未与 backbone 匹配的 read 会在链首产生孤儿节点：
+	// 没有任何 backbone 节点的右向边指向它们，SparcFreeInfo 沿右子图
+	// 遍历时不可达，必须在这里登记后单独释放。
+	vector<ConsensusNode *> orphan_nodes;
 	vector<SparseConsensusNode *> sparse_node_vec;
 	vector<uint64_t> cov_vec;
 	vector<uint64_t> cnt_vec;

@@ -477,9 +477,9 @@ void SparcFindBestPath(struct Backbone *backbone_info)
 	// cout << n_Rbranched << " right branches." << endl;
 }
 
-void SparcBFSFree(struct Backbone *backbone_info, int node_idx)
+// 释放从 begin_node 沿右向边可达的整棵子树（含 begin_node 本身及其左右边）。
+static void SparcBFSFreeNode(ConsensusNode *begin_node)
 {
-	ConsensusNode *begin_node = backbone_info->node_vec[node_idx];
 	list<ConsensusNode *> node_list;
 	node_list.push_back(begin_node);
 
@@ -511,6 +511,11 @@ void SparcBFSFree(struct Backbone *backbone_info, int node_idx)
 		}
 		free(current_node);
 	}
+}
+
+void SparcBFSFree(struct Backbone *backbone_info, int node_idx)
+{
+	SparcBFSFreeNode(backbone_info->node_vec[node_idx]);
 }
 
 void SparcBFSClear(struct Backbone *backbone_info, int node_idx)
@@ -555,6 +560,13 @@ void SparcClearInfo(struct Backbone *backbone_info)
 
 void SparcFreeInfo(struct Backbone *backbone_info)
 {
+	// 孤儿子树必须先于 backbone 节点释放：孤儿链会经正向边回连 backbone
+	// 节点，若 backbone 节点先释放，回连边就会写已释放内存；
+	// 反过来没有任何 backbone 右子边指向孤儿链，先释放它不会产生悬空引用。
+	for (size_t i = 0; i < backbone_info->orphan_nodes.size(); ++i)
+	{
+		SparcBFSFreeNode(backbone_info->orphan_nodes[i]);
+	}
 
 	for (int i = 0; i < (int)backbone_info->node_vec.size(); ++i)
 	{

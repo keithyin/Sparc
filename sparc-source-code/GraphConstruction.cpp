@@ -995,6 +995,9 @@ void SparcAddPathToBackbone(struct Backbone *backbone_info, struct Query *query_
 				backbone_info->n_nodes++;
 				previous_node = current_node;
 				query_info->n_new++;
+				// 链首孤儿节点：后续只会建立它指向 backbone 的正向边，
+				// 无人指向它，释放需走 orphan_nodes。
+				backbone_info->orphan_nodes.push_back(current_node);
 				// cout << i << ", ";
 			}
 			else
