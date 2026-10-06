@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: cargo build
+      - name: Test
+        run: cargo test
+
+  valgrind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install valgrind
+        run: sudo apt-get update && sudo apt-get install -y valgrind
+      - name: Run tests under valgrind (leak check)
+        run: |
+          set -euo pipefail
+          cargo test --no-run --message-format=json > /tmp/build.json
+          bins=$(jq -r 'select(.executable != null and (.profile.test // false)) | .executable' /tmp/build.json | sort -u)
+          status=0
+          for bin in $bins; do
+            echo "== $bin"
+            if ! valgrind \
+              --leak-check=full \
+              --show-leak-kinds=definite \
+              --errors-for-leak-kinds=definite \
+              --error-exitcode=99 \
+              "$bin"; then
+              status=1
+            fi
+          done
+          exit $status

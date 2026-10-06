@@ -24,7 +24,7 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 	std::string backbone = backbone_c;
 	bool HELP = 0;
 	int kmer = config->kmer;
-	int CovTh = config->converage_threshold;
+	int CovTh = config->coverage_threshold;
 	int ScoringMethod = config->scoring_method;
 	int subgraph_begin = config->subgraph_begin;
 	int subgraph_end = config->subgraph_end;
@@ -39,7 +39,7 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 	int Patch_K = 5;
 	int Patch_D = 30;
 	int Patch_G = 2;
-	double threshold = 0.2;
+	double threshold = config->threshold;
 	string str;
 
 	if (debug)
@@ -141,6 +141,13 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 	{
 		radius = backbone.size() - 1;
 	}
+	// node_vec.size() = backbone.size() - kmer + 1。k>=3 时上面的 clamp 仍
+	// 大于 node_vec 大小，滑窗循环会越界读 node_vec（上游 CLI 同样存在），
+	// 这里按 node_vec 再收紧一次；k=1/2 时与旧行为完全一致。
+	if (radius > (int)backbone_info_org.node_vec.size())
+	{
+		radius = (int)backbone_info_org.node_vec.size();
+	}
 
 	// 这个 radius 的 cov 的 count ++ 是要干什么？
 	// 滑动窗口最大覆盖度值的 计算
@@ -213,7 +220,9 @@ SparcConsensusResult SparcConsensus(char *backbone_c, Query **queries, int n_que
 		{
 			std::cout << "Empty ouput. Backbone copied." << std::endl;
 		}
-		return SparcConsensusResult{result};
+		// fallback：start_pos = -1 表示无最优路径（start 为 None），
+		// end_pos = 0 表示原样返回 backbone
+		return SparcConsensusResult{result, -1, 0};
 	}
 
 	ConsensusNode *current_node = backbone_info_org.node_vec[end_position_inclusive];
